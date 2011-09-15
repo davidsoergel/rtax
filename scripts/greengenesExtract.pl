@@ -17,22 +17,27 @@ while (<STDIN>) {
         my $seq       = "NONE";
 
         until ( $_ =~ /^END$/ ) {
-            if (/^prokMSA_id=(.*)/) {
+            if (/^prokMSA_id=(.+)/) {
                 $prokMSAid = $1;
             }
-            elsif (/^$fieldname=(.*)/) {
+            elsif (/^$fieldname=(.+)/) {
                 $tax = $1;
             }
-            elsif (/aligned_seq=(.*)/) {
+            elsif (/aligned_seq=(.+)/) {
                 $seq = $1;
             }
 
-            if ( $seq ne "unaligned" ) {
+            if ( $seq ne "NONE" && $seq ne "unaligned" ) {
                 print FASTA ">$prokMSAid\n$seq\n";
 
                 # don't include taxonomy info if there is no sequence anyway
-                print TAX "$prokMSAid\t$tax\n";
+                # and certainly not if there is no taxonomy data
+                if ( $tax ne "" && $tax ne "NONE" ) {
+                    print TAX "$prokMSAid\t$tax\n";
+                }
             }
+
+            $_ = <STDIN>;
         }
     }
 
