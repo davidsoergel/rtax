@@ -49,7 +49,7 @@
 use strict;
 use warnings;
 use Bio::Index::Fasta;
-use Getopt::Std;
+use Getopt::Long;
 
 use vars qw (
     $usearch

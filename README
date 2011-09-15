@@ -20,7 +20,7 @@ Requirements
 	(we use only Bio::Index::Fasta so the many optional BioPerl
 	dependencies are not needed).
 	
- * GetOpt::Std ("sudo cpan Getopt::Std")
+ * Getopt::Long ("sudo cpan Getopt::Long")
 
  * USEARCH (http://www.drive5.com/usearch/).  RTAX has been tested only with v4.1.93.
 
