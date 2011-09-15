@@ -10,7 +10,7 @@ pth=$(2>/dev/null cd "${arg%/*}" >&2; echo "`pwd -P`/${arg##*/}")
 par=$(dirname "$pth")
 scripts="$par/scripts"
 
-if [ $# -ne 3 && $# -ne 4 ]
+if [[ ( $# -ne 3 ) && ( $# -ne 4 ) ]]
 then
   echo "Usage: `basename $0` reference.fasta reference.taxonomy queryA.fasta [queryB.fasta] > classifications.out"
   exit 1
@@ -29,13 +29,14 @@ queryB=$4
 tempdir=/tmp/rtax.$RANDOM
 mkdir $tempdir
 cd $tempdir
+echo `pwd`
 
 # perform the search
 
 if [ $queryB ]; then
-    $scripts/rtaxSearchPair --database $refdb --queryA $queryA --queryB $queryB > rawhits
+    $scripts/rtaxSearchPair.pl --database $refdb --queryA $queryA --queryB $queryB > rawhits
 else
-    $scripts/rtaxSearchSingle --database $refdb --queryA $queryA > rawhits
+    $scripts/rtaxSearchSingle.pl --database $refdb --queryA $queryA > rawhits
 fi
 
 
