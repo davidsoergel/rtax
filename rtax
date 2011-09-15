@@ -1,0 +1,52 @@
+#!/bin/sh
+
+# we want to call subsidiary scripts in the "scripts" subdir, but we don't know where we're installed or what the working directory is.
+# solution from http://hintsforums.macworld.com/archive/index.php/t-73839.html
+
+IFS=$' \t\n'
+declare -x PATH=/bin:/usr/bin
+arg=$0; [[ -L $0 ]] && arg=$(stat -f '%Y' "$0")
+pth=$(2>/dev/null cd "${arg%/*}" >&2; echo "`pwd -P`/${arg##*/}")
+par=$(dirname "$pth")
+scripts="$par/scripts"
+
+
+# Grab the command-line arguments
+
+refdb=$1
+taxonomy=$2
+queryA=$3
+queryB=$4
+
+
+# create a temporary working directory
+
+tempdir=/tmp/rtax.$RANDOM
+mkdir $tempdir
+cd $tempdir
+
+# perform the search
+
+if [ $queryB ]; then
+    $scripts/rtaxSearchPair --database $refdb --queryA $queryA --queryB $queryB > rawhits
+else
+    $scripts/rtaxSearchSingle --database $refdb --queryA $queryA > rawhits
+fi
+
+
+# choose the "best" taxonomy assignment by walking down the tree, including info on how many ref sequences agree at each level
+
+$scripts/exactMatchTaxonDistribution.pl $taxonomy rawhits > rawtaxonomy
+
+# filter the taxonomy strings to the finest rank where half of the hits agree (out of all the hits, i.e. including in the denominator those hits with no annotation)
+
+$scripts/classificationQualityFilter.pl 1 0.0 0.5 < rawtaxonomy > filteredtaxonomy
+
+# clean up the resulting output and provide it to STDOUT
+
+$scripts/classificationQualityStripper.pl < filteredtaxonomy 
+
+# remove the temp directory
+# (comment out to debug or grab intermediate results)
+
+rm -rf $tempdir

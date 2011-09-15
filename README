@@ -1,0 +1,86 @@
+RTAX: Rapid and accurate taxonomic classification of short paired-end
+      sequence reads from the 16S ribosomal RNA gene.
+
+David A. W. Soergel 1*, Rob Knight 2, and Steven E. Brenner 1
+
+1 Department of Plant and Microbial Biology,
+  University of California, Berkeley 
+2 Howard Hughes Medical Institute and Department of Chemistry 
+  and Biochemistry, University of Colorado at Boulder
+* Corresponding author: soergel@berkeley.edu
+
+Version 0.9  (September 7, 2011)
+
+
+Requirements
+------------
+
+ * BioPerl.  See http://www.bioperl.org/wiki/Installing_Bioperl_for_Unix,
+	particularly the "Easy install using CPAN" section.
+	(we use only Bio::Index::Fasta so the many optional BioPerl
+	dependencies are not needed).
+	
+ * GetOpt::Std ("sudo cpan Getopt::Std")
+
+ * USEARCH (http://www.drive5.com/usearch/).  RTAX has been tested only with v4.1.93.
+
+* A reference database consisting of sequences for which taxonomy assignments are known.  Two files are needed:
+  1. a FASTA file containing the sequences, and 
+  2. a file listing taxonomy strings for each sequence ID found in the FASTA file.  The format of this file is XXXXX
+
+
+Installation
+------------
+
+RTAX consists of a set of perl scripts and a shell script ("rtax") to wire them together.  No compilation is needed; just extract the package to a convenient location.
+
+The perl scripts must remain in the "scripts" directory below the "rtax" shell script, but the latter can be symlinked anywhere for convenience.  A common pattern might be to place the whole package at /usr/local/rtax, and then symlink the script into your path (e.g., "ln -s /usr/local/rtax/rtax /usr/local/bin").
+
+The scripts should be executable ("chmod a+x rtax; chmod a+x scripts/*.pl" if for some reason they're not), and they expect perl to be available at /usr/bin/perl (edit the first line of each script if not).
+
+
+Running RTAX
+------------
+
+The script is run as follows:
+
+    rtax [reference.fasta] [reference.taxonomy] [queryA.fasta] [queryB.fasta] > classifications.out 
+
+Note that the two query files must provide mate-paired reads with exactly
+matching identifiers (though they need not be in the same order).  Any ids
+present in one file but not the other are silently dropped.  Please contact
+us for help accomodating alternate naming schemes for the paired reads
+(e.g., "SOMEID.a" paired with "SOMEID.b", and so forth).
+
+RTAX may be run for single-ended reads as well; simply exclude the queryB
+parameter in this case.
+
+Various progress messages are provided on stderr, and the predicted classification for each query is provided on stdout.  The output format is tab-delimited, as follows:
+
+sequence_id	
+
+
+Temporary files are created in /tmp/rtax.SOMENUMBER.  These are deleted upon successful termination, but may need to be manually cleaned up in the event of an error of some sort.
+
+
+Plumbing
+--------
+
+Taxonomy assignment proceeds in two phases, which we implement separately:
+
+1.  For each query sequence (or mate pair), find an appropriate set of matching
+	hits in a reference database.  This is implemented as rtaxSearchSingle
+	and rtaxSearchPair for single and paired-end reads, respectively.
+
+2.  Find consensus taxonomy among each set of reference hits.  This is
+	implemented as rtaxVote.
+
+The output of one of the rtaxSearch programs can be piped directly into
+rtaxVote, if desired.  Thus a complete run, starting from paired query sequences
+and producing taxonomy assignments, looks like this:
+
+ rtaxSearchPair --database db.fasta --queryA read1.fasta --queryB read2.fasta |\
+ rtaxVote --taxonomy db.taxonomy > taxonomy.predictions.txt
+
+
+Run each script with no arguments for instructions regarding additional options.
