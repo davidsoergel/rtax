@@ -1,3 +1,5 @@
+#!/usr/bin/perl
+
 while (<STDIN>) {
 	my $line = $_;
 	$line =~ s/;[^\t\n]*//g;

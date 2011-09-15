@@ -1,3 +1,5 @@
+#!/usr/bin/perl
+
 my $countThreshold               = $ARGV[0];
 my $localMinProportionThreshold  = $ARGV[1];
 my $globalMinProportionThreshold = $ARGV[2];

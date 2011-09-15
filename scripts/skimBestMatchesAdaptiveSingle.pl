@@ -1,3 +1,5 @@
+#!/usr/bin/perl
+
 # read a uclust result file from STDIN; for each query sequence, collect the prokMSAids of those hits that are within $slop of the best.
 
 use strict;
