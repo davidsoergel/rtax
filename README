@@ -24,9 +24,11 @@ Requirements
 
  * USEARCH (http://www.drive5.com/usearch/).  RTAX has been tested only with v4.1.93.
 
-* A reference database consisting of sequences for which taxonomy assignments are known.  Two files are needed:
+* A reference database consisting of sequences for which taxonomy assignments are known.  (See the GreenGenes section below).  Two files are needed:
   1. a FASTA file containing the sequences, and 
   2. a file listing taxonomy strings for each sequence ID found in the FASTA file.  The format of this file is XXXXX
+
+
 
 
 Installation
@@ -37,6 +39,20 @@ RTAX consists of a set of perl scripts and a shell script ("rtax") to wire them 
 The perl scripts must remain in the "scripts" directory below the "rtax" shell script, but the latter can be symlinked anywhere for convenience.  A common pattern might be to place the whole package at /usr/local/rtax, and then symlink the script into your path (e.g., "ln -s /usr/local/rtax/rtax /usr/local/bin").
 
 The scripts should be executable ("chmod a+x rtax; chmod a+x scripts/*.pl" if for some reason they're not), and they expect perl to be available at /usr/bin/perl (edit the first line of each script if not).
+
+
+GreenGenes reference database
+-----------------------------
+
+Download and extract the complete GreenGenes database:
+
+    wget http://greengenes.lbl.gov/Download/Sequence_Data/Greengenes_format/greengenes16SrRNAgenes.txt.gz
+    gunzip greengenes16SrRNAgenes.txt.gz
+
+Extract the sequence and taxonomy information:
+    scripts/greengenesExtract.pl < greengenes16SrRNAgenes.txt
+
+That will write greengenes.fasta and greengenes.taxonomy into the current directory.
 
 
 Running RTAX
@@ -61,6 +77,8 @@ sequence_id
 
 
 Temporary files are created in /tmp/rtax.SOMENUMBER.  These are deleted upon successful termination, but may need to be manually cleaned up in the event of an error of some sort.
+
+In addition, indexes into the FASTA files are written in the same directory as the files themselves (which must therefore be writeable).
 
 
 Plumbing
