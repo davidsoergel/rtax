@@ -10,6 +10,11 @@ pth=$(2>/dev/null cd "${arg%/*}" >&2; echo "`pwd -P`/${arg##*/}")
 par=$(dirname "$pth")
 scripts="$par/scripts"
 
+if [ $# -ne 3 && $# -ne 4 ]
+then
+  echo "Usage: `basename $0` reference.fasta reference.taxonomy queryA.fasta [queryB.fasta] > classifications.out"
+  exit 1
+fi
 
 # Grab the command-line arguments
 

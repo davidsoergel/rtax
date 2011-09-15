@@ -44,7 +44,7 @@ Running RTAX
 
 The script is run as follows:
 
-    rtax [reference.fasta] [reference.taxonomy] [queryA.fasta] [queryB.fasta] > classifications.out 
+    rtax reference.fasta reference.taxonomy queryA.fasta [queryB.fasta] > classifications.out 
 
 Note that the two query files must provide mate-paired reads with exactly
 matching identifiers (though they need not be in the same order).  Any ids
