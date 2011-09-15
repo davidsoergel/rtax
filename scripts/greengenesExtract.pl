@@ -3,8 +3,8 @@
 use strict;
 use warnings;
 
-open(FASTA, ">greengenes.fasta") || die ("Can't write to greengenes.fasta");
-open(TAX, ">greengenes.taxonomy") || die ("Can't write to greengenes.taxonomy");
+open( FASTA, ">greengenes.fasta" )    || die("Can't write to greengenes.fasta");
+open( TAX,   ">greengenes.taxonomy" ) || die("Can't write to greengenes.taxonomy");
 
 my $fieldname = "gg_norm_tax_string";
 
@@ -28,17 +28,17 @@ while (<STDIN>) {
             }
 
             if ( $seq ne "unaligned" ) {
-                print FASTA ">$prokmsa\n$seq\n";
+                print FASTA ">$prokMSAid\n$seq\n";
 
                 # don't include taxonomy info if there is no sequence anyway
-                print TAX "$prokMSAid\t$val\n";
+                print TAX "$prokMSAid\t$tax\n";
             }
-
         }
-
-        # else ignore anything outside a BEGIN/END block
-
     }
+
+    # else ignore anything outside a BEGIN/END block
+
+}
 
 close FASTA;
 close TAX;
