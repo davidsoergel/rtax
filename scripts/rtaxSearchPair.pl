@@ -110,7 +110,7 @@ David A. W. Soergel (1*), Rob Knight (2), and Steven E. Brenner (1)
 1 Department of Plant and Microbial Biology, University of California, Berkeley 
 2 Howard Hughes Medical Institute and Department of Chemistry and Biochemistry,
   University of Colorado at Boulder
-* Corresponding author: soergel@berkeley.edu
+* Corresponding author: soergel\@berkeley.edu
 
 http://www.davidsoergel.com/rtax
 
