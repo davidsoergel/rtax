@@ -44,13 +44,12 @@ The scripts should be executable ("chmod a+x rtax; chmod a+x scripts/*.pl" if fo
 GreenGenes reference database
 -----------------------------
 
-Download and extract the complete GreenGenes database:
+Download the complete GreenGenes database:
 
     wget http://greengenes.lbl.gov/Download/Sequence_Data/Greengenes_format/greengenes16SrRNAgenes.txt.gz
-    gunzip greengenes16SrRNAgenes.txt.gz
 
 Extract the sequence and taxonomy information:
-    scripts/greengenesExtract.pl < greengenes16SrRNAgenes.txt
+     zcat greengenes16SrRNAgenes.txt | scripts/greengenesExtract.pl
 
 That will write greengenes.fasta and greengenes.taxonomy into the current directory.
 
