@@ -22,7 +22,7 @@ Requirements
 	
  * Getopt::Long ("sudo cpan Getopt::Long")
 
- * USEARCH (http://www.drive5.com/usearch/).  RTAX has been tested only with v4.1.93.
+ * USEARCH (http://www.drive5.com/usearch/).  RTAX has been tested with v4.1.93 and v5.0.144.
 
 * A reference database consisting of sequences for which taxonomy assignments are known.  (See the GreenGenes section below).  Two files are needed:
   1. a FASTA file containing the sequences, and 
@@ -44,25 +44,25 @@ The perl scripts must remain in the "scripts" directory below the "rtax" shell s
 Preparing the GreenGenes reference database
 -------------------------------------------
 
-An RTAX-formatted reference database based on GreenGenes (version of May 31, 2011) is available at http://dev.davidsoergel.com/rtax/greengenes.reference.20110531.tgz.
+An RTAX-formatted reference database based on GreenGenes (version of May 31, 2011) is available at http://dev.davidsoergel.com/rtax/greengenes.reference.20110531.tgz.  That contains gg.nr.fasta and gg.nr.taxonomy, which are the result of clustering the GreenGenes input file at 99% identity, finding consensus taxonomy strings for each cluster, and formatting the result as needed for use with RTAX.
 
 To regenerate these files (e.g. with a newer GreenGenes version): download the complete GreenGenes database to a disk with at least 20GB free space (as of Sep 2011, but GreenGenes is growing rapidly):
 
     wget http://greengenes.lbl.gov/Download/Sequence_Data/Greengenes_format/greengenes16SrRNAgenes.txt.gz
 
-Then, while in the directory containing the downloaded .txt.gz file, run prepare-greengenes.  (If usearch is not in your path, use "prepare-greengenes /path/to/usearch").  This takes a couple of hours.  Go out for coffee and whatnot.  When you get back, you'll find two files have been produced: gg.nr.fasta and gg.nr.taxonomy.  These are the result of clustering the GreenGenes input file at 99% identity, finding consensus taxonomy strings for each cluster, and formatting the result as needed for use as an RTAX reference database.
+Then, while in the directory containing the downloaded .txt.gz file, run prepare-greengenes.  (If usearch is not in your path, use "prepare-greengenes /path/to/usearch").  This takes a couple of hours and about 4GB of memory.  Go out for coffee and whatnot.  When you get back, you'll find two files have been produced: gg.nr.fasta and gg.nr.taxonomy.  Note that the free (32-bit) version of USEARCH can use at most 2GB memory on some systems (e.g., Macs) and at most 4GB memory on others.  Thus, GreenGenes will soon be too large to cluster using USEARCH without a paid license.
 
 
 Preparing a non-GreenGenes reference database
 ---------------------------------------------
 
-You can certainly use different databases; if you have any trouble producing the fasta and taxonomy files in the required format, examine the prepare-greengenes script for hints and feel free to contact us for help.
+You can certainly use different databases, or GreenGenes clustered by different means or with different parameters (or not at all, though this approach will have poopr performance).  If you have any trouble producing the reference fasta and taxonomy files in the required format, examine the prepare-greengenes script for hints, and feel free to contact us for help.
 
 
 Running RTAX
 ------------
 
-The script is run as follows:
+Sequence classification is done as follows:
 
     rtax gg.nr.fasta gg.nr.taxonomy queryA.fasta [queryB.fasta] > classifications.out 
 

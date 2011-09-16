@@ -56,10 +56,9 @@ use vars qw (
     $slop
     $minMaxAccepts
     $maxMaxAccepts
-    $maxPairPercentDifferenceThreshold
+    $maxSinglePercentDifferenceThreshold
     $databaseFile
     $readAFileAll
-    $readBFileAll
 );
 
 # each file provides reads from a different primer extracted from full-length sequence, in the same order
@@ -71,15 +70,13 @@ sub init {
         "slop=s"                              => \$slop,
         "minMaxAccepts=s"                     => \$minMaxAccepts,
         "maxMaxAccepts=s"                     => \$maxMaxAccepts,
-        "maxPairPercentDifferenceThreshold=s" => \$maxPairPercentDifferenceThreshold,
+        "maxSinglePercentDifferenceThreshold=s" => \$maxSinglePercentDifferenceThreshold,
         "databaseFile=s"                      => \$databaseFile,
-        "queryA=s"                            => \$readAFileAll,
-        "queryB=s"                            => \$readBFileAll
+        "queryA=s"                            => \$readAFileAll
     );
 
     if ( !defined $databaseFile || 
-        !defined $readAFileAll || 
-        !defined $readBFileAll ) {
+        !defined $readAFileAll ) {
         print STDERR "Missing required argument!\n\n";
         usage();
     }
@@ -95,8 +92,8 @@ sub init {
     if ( !defined $slop )          { $slop          = 0.005; }
     if ( !defined $minMaxAccepts ) { $minMaxAccepts = 1000; }
     if ( !defined $maxMaxAccepts ) { $maxMaxAccepts = 16000; }
-    if ( !defined $maxPairPercentDifferenceThreshold ) {
-        $maxPairPercentDifferenceThreshold = 0.2;
+    if ( !defined $maxSinglePercentDifferenceThreshold ) {
+        $maxSinglePercentDifferenceThreshold = 0.2;
         }
 }
 
@@ -155,18 +152,10 @@ OPTIONS:
     --databaseFile <file>
                         A FASTA file containing a reference database.
                         
-    --queryA <file>     A FASTA file containing one set of query reads.
-    
-    --queryB <file>     A FASTA file containing the other set of query reads.
-    
-    Note that the two query files must provide mate-paired reads with exactly
-    matching identifiers (though they need not be in the same order).  Any ids
-    present in one file but not the other are silently dropped.  Please contact
-    us for help accomodating alternate naming schemes for the paired reads
-    (e.g., "SOMEID.a" paired with "SOMEID.b", and so forth).
+    --queryA <file>     A FASTA file containing a set of query reads.
     
     Various indexes and derived FASTA files will be created in a temporary
-    directory and are cleaned up afterwards.
+	directory and are cleaned up afterwards.
     
     The output is tab-delimited text, one line per query pair, in the form
     
@@ -185,7 +174,6 @@ EOF
 }
 
 my $indexA;
-my $indexB;
 
 sub printLine {
     my ( $label, $idsByIdentity ) = @_;
@@ -218,9 +206,9 @@ sub collectIds {
     my ( $typeF, $clusterF, $sizeF, $percentIdF, $strandF, $queryStartF, $targetStartF, $alignmentF, $queryLabelF, $targetLabelF ) =
         split /\t/, $firstLine;
     chomp $targetLabelF;
-    if ( $typeF eq "N" ) {
 
-        #print STDERR "$queryLabelF -> N\n";
+    if ( $typeF eq "N" ) {
+		#print STDERR "$queryLabelF -> N\n";
 
         # NOHIT represented as empty hash
         # note we still have to cache the next line, after filtering comments
@@ -228,8 +216,8 @@ sub collectIds {
             if (/^\s*#/) { next; }
             if (/^\s*$/) { next; }
             my $line = $_;
-            chomp $line;
 
+            chomp $line;
             #print STDERR "$line\n";
             return ( $queryLabelF, \%hits, $line );
         }
@@ -243,8 +231,8 @@ sub collectIds {
         if (/^\s*#/) { next; }
         if (/^\s*$/) { next; }
         my $line = $_;
-        chomp $line;
 
+        chomp $line;
         #print STDERR "$line\n";
 
         my ( $type, $cluster, $size, $percentId, $strand, $queryStart, $targetStart, $alignment, $queryLabel, $targetLabel ) =
@@ -277,76 +265,53 @@ sub collectIds {
 }
 
 sub reconcileHitsAndPrint {
-    my ( $queryLabel, $idsA, $idsB, $pairPercentIdThreshold ) = @_;
+    my ( $queryLabel, $idsA, $idsB, $singlePercentIdThreshold ) = @_;
 
     my $idsByIdentity = {};
     for my $targetLabel ( keys %$idsA ) {
         my $percentIdA = $idsA->{$targetLabel};
-        my $percentIdB = $idsB->{$targetLabel};
-        if ($percentIdB) {
-
-            # both reads hit the same target
-            # compute the average percent id
-            my $pairPercentId = ( $percentIdA + $percentIdB ) / 2.0;
-            if ( $pairPercentId >= $pairPercentIdThreshold ) {
-                if ( !defined $idsByIdentity->{$pairPercentId} ) {
-                    $idsByIdentity->{$pairPercentId} = [];
-                }
-                push @{ $idsByIdentity->{$pairPercentId} }, $targetLabel;
-            }
+        if ( !defined $idsByIdentity->{$percentIdA} ) {
+            $idsByIdentity->{$percentIdA} = [];
         }
-    }
+        push @{ $idsByIdentity->{$percentIdA} }, $targetLabel;
+
+                }
 
     if ( !%$idsByIdentity ) {
 
-        #print STDERR "$queryLabel -> no reconciled hits at $pairPercentIdThreshold%\n";
+        #print STDERR "$queryLabel -> no reconciled hits at $singlePercentIdThreshold%\n";
 
         # this is the NOHIT case, but we'll back off and try again
         return 0;
     }
     else {
 
-        #print STDERR "$queryLabel -> printing reconciled hits at $pairPercentIdThreshold%\n";
+        #print STDERR "$queryLabel -> printing reconciled hits at $singlePercentIdThreshold%\n";
         printLine( $queryLabel, $idsByIdentity );
         return 1;
     }
 
 }
 
-sub doPairSearch {
+sub doSearch {
     my $numQuerySequences              = shift;
     my $readAFile                      = shift;
-    my $readBFile                      = shift;
-    my $pairPercentDifferenceThreshold = shift;
+    my $singlePercentDifferenceThreshold = shift;
     my $maxAccepts                     = shift;
 
-    my $pairPercentIdThreshold = 1. - $pairPercentDifferenceThreshold;
-
-    # because we're going to average the two %ids, we have to search each read with twice the %diff for the pair
-    my $singlePercentDifferenceThreshold = $pairPercentDifferenceThreshold * 2;
     my $singlePercentIdThreshold         = 1. - $singlePercentDifferenceThreshold;
 
-    print STDERR "$numQuerySequences query sequences remaining; searching with pair %id "
-        . $pairPercentDifferenceThreshold
-        . " and maxAccepts "
-        . $maxAccepts . "\n";
+    print STDERR
+"$numQuerySequences query sequences remaining; searching $readAFile with %id $singlePercentDifferenceThreshold and maxAccepts $maxAccepts\n";
 
     my $nohitQueryIds      = [];
     my $tooManyHitQueryIds = [];
 
-    # open the USEARCH streams
-    print STDERR
-"$usearch --quiet --iddef 2 --query $readAFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject\n";
+    print STDERR "$usearch --quiet --iddef 2 --query $readAFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject\n";
 
+    # open the USEARCH streams
     open( UCA,
 "$usearch --quiet --iddef 2 --query $readAFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject |"
-    ) || die "can't fork usearch: $!";
-
-    print STDERR
-"$usearch --quiet --iddef 2 --query $readBFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject\n";
-
-    open( UCB,
-"$usearch --quiet --iddef 2 --query $readBFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject |"
     ) || die "can't fork usearch: $!";
 
     # Load the first non-comment line from each stream
@@ -358,81 +323,32 @@ sub doPairSearch {
         last;
     }
 
-    my $nextLineB;
-    while (<UCB>) {
-        if (/^\s*#/) { next; }
-        if (/^\s*$/) { next; }
-        $nextLineB = $_;
-        last;
-    }
-
     # read synchronized blocks from each stream
     while (1) {
-        my ( $queryLabelA, $idsA, $queryLabelB, $idsB );
+        my ( $queryLabelA, $idsA );
+        #print STDERR "reading next block...\n";
 
         # idsA is a reference to a hash from targetIds to %ids
         ( $queryLabelA, $idsA, $nextLineA ) = collectIds( *UCA, $nextLineA );
-        ( $queryLabelB, $idsB, $nextLineB ) = collectIds( *UCB, $nextLineB );
 
-        if ( !( $queryLabelA eq $queryLabelB ) ) {
-            die "Usearch results desynchronized: $queryLabelA neq $queryLabelB";
-        }
-
-        my $numHitsA = ( scalar keys %$idsA );
-        my $numHitsB = ( scalar keys %$idsB );
-
-        # if either read got NOHITS, then it's definitely NOHITS for the pair.  This trumps TOOMANYHITS for the other read.
-        # don't bother trying to reconcile hits in this case
-
-        if ( ( $numHitsA == 0 ) || ( $numHitsB == 0 ) ) {
-            push @$nohitQueryIds, $queryLabelA;
-        }
-
-        # if both reads got TOOMANYHITS, then it's definitely TOOMANYHITS for the pair.
-
-        elsif ( ( $numHitsA >= $maxAccepts ) && ( $numHitsB >= $maxAccepts ) ) {
+        if ( ( scalar keys %$idsA ) >= $maxAccepts ) {
             push @$tooManyHitQueryIds, $queryLabelA;
         }
 
-        # if neither read got TOOMANYHITS, then we're good to go
-
-        elsif ( ( $numHitsA < $maxAccepts ) && ( $numHitsB < $maxAccepts ) ) {
-            if ( !reconcileHitsAndPrint( $queryLabelA, $idsA, $idsB, $pairPercentIdThreshold ) ) {
+        elsif ( !reconcileHitsAndPrint( $queryLabelA, $idsA, $singlePercentIdThreshold ) ) {
                 push @$nohitQueryIds, $queryLabelA;
             }
 
-        }
-        else {
-
-            # if only one read got TOOMANYHITS, escalate if possible
-            if ( $maxAccepts < $maxMaxAccepts ) {
-                push @$tooManyHitQueryIds, $queryLabelA;
-            }
-
-            # but if only one read got TOOMANYHITS and we're already at maxMaxAccepts, fall back to the info provided by the other read.
-            elsif ( $numHitsA < $maxAccepts ) {
-                if ( !reconcileHitsAndPrint( $queryLabelA, $idsA, $idsA, $pairPercentIdThreshold ) ) {
-                    push @$nohitQueryIds, $queryLabelA;
-                }
-            }
-            elsif ( $numHitsB < $maxAccepts ) {
-                if ( !reconcileHitsAndPrint( $queryLabelA, $idsB, $idsB, $pairPercentIdThreshold ) ) {
-                    push @$nohitQueryIds, $queryLabelA;
-                }
-            }
-            else { die "impossible"; }
-        }
-        if ( !$nextLineA || !$nextLineB ) {
-            if ( !( !$nextLineA && !$nextLineB ) ) {
-                die "Usearch results desynchronized at end:\nA: $nextLineA\nB: $nextLineB";
-            }
+        if ( !$nextLineA ) {
+            #print STDERR "End of stream, close\n";
             last;
         }
 
     }
 
     close(UCA) || die "can't close usearch: $!";
-    close(UCB) || die "can't close usearch: $!";
+
+    #print STDERR "Closed usearch stream.\n";
 
     # for the TOOMANYHITS cases, escalate maxAccepts and try again
     # Note this recurses, so no need to iterate here
@@ -443,23 +359,15 @@ sub doPairSearch {
 
         # prepare input files with the remaining sequences
         $readAFile = extractFasta( $indexA, $tooManyHitQueryIds );
-        $readBFile = extractFasta( $indexB, $tooManyHitQueryIds );
 
         ( $nohitQueryIdsB, $tooManyHitQueryIds ) =
-            doPairSearch( scalar(@$tooManyHitQueryIds), $readAFile, $readBFile, $pairPercentDifferenceThreshold, $maxAccepts * 2 );
-
-        # A TOOMANYHITS case can certainly turn into a NOHITS case:
-        # once one read is no longer TOOMANYHITS, it may turn out that nothing can be reconciled with the other read.
-
-        #if (@$nohitQueryIdsB) {
-        #    die(      "A TOOMANYHITS case can't turn into a NOHITS case: "
-        #            . ( join ", ", @$nohitQueryIdsB )
-        #            . " at pair threshold $pairPercentDifferenceThreshold and maxAccepts "
-        #            . ( $maxAccepts * 2 ) );
-        #  }
+            doSearch( scalar(@$tooManyHitQueryIds), $readAFile, $singlePercentDifferenceThreshold, $maxAccepts * 2 );
+        if (@$nohitQueryIdsB) {
+            die "A TOOMANYHITS case can't turn into a NOHITS case";
+    }
     }
 
-    print STDERR "Finished doPairSearch at  pair threshold $pairPercentDifferenceThreshold and maxAccepts $maxAccepts\n";
+    print STDERR "Finished doSearch at threshold $singlePercentDifferenceThreshold and maxAccepts $maxAccepts\n";
     print STDERR "NOHITS: " .      ( join ", ", @$nohitQueryIds ) . "\n";
     print STDERR "TOOMANYHITS: " . ( join ", ", @$tooManyHitQueryIds ) . "\n";
 
@@ -501,43 +409,19 @@ sub main {
     push @$nohitQueryIds, "ALL";
     my $tooManyHitQueryIds = [];
 
-    my $pairPercentDifferenceThreshold = 0.005;    # this gets doubled to 1% before being used the first time
+    my $singlePercentDifferenceThreshold = 0.005;    # this gets doubled to 1% before being used the first time
 
     # these are redundant between multiple runs, oh well
     $indexA = Bio::Index::Fasta->new( '-filename' => "A.idx", '-write_flag' => 1 );
     $indexA->make_index($readAFileAll);
 
-    $indexB = Bio::Index::Fasta->new( '-filename' => "B.idx", '-write_flag' => 1 );
-    $indexB->make_index($readBFileAll);
-
-    my @union        = ();
-    my @intersection = ();
-    my @difference   = ();
-    my %count        = ();
-    my @idsA         = keys %{ $indexA->db() };
-    my @idsB         = keys %{ $indexB->db() };
-
-    #print STDERR "idsA = " . (join " ", @idsA) . "\n";
-    #print STDERR "idsB = " . (join " ", @idsB) . "\n";
-
-    foreach my $element ( @idsA, @idsB ) { $count{$element}++; }
-    foreach my $element ( keys %count ) {
-        if ( !( $element =~ /^__/ ) ) {
-            push @union, $element;
-            push @{ $count{$element} > 1 ? \@intersection : \@difference }, $element;
-        }
-    }
-
-    #print STDERR "intersection = " . ( join " ", @intersection ) . "\n";
-
-    my $readAFile = extractFasta( $indexA, \@intersection );
-    my $readBFile = extractFasta( $indexB, \@intersection );
+    my $readAFile = $readAFileAll;
 
     while ( @$nohitQueryIds > 0 ) {
 
         # double the allowed %diff on every round
-        $pairPercentDifferenceThreshold *= 2;
-        if ( $pairPercentDifferenceThreshold > $maxPairPercentDifferenceThreshold ) {
+        $singlePercentDifferenceThreshold *= 2;
+        if ( $singlePercentDifferenceThreshold > $maxSinglePercentDifferenceThreshold ) {
             last;
         }
 
@@ -545,17 +429,16 @@ sub main {
 
             # prepare input files with the remaining sequences
             $readAFile = extractFasta( $indexA, $nohitQueryIds );
-            $readBFile = extractFasta( $indexB, $nohitQueryIds );
         }
 
-        # within doPairSearch we escalate maxAccepts, so if a queryLabel is still marked tooManyHits at this point,
+        # within doSearch we escalate maxAccepts, so if a queryLabel is still marked tooManyHits at this point,
         # that means that there are more than maxMaxAccepts hits for this threshold--
         # so there's really no point in testing this query again at an even lower threshold
         my $tooManyHitQueryIdsThisRound;
         ( $nohitQueryIds, $tooManyHitQueryIdsThisRound ) =
-            doPairSearch( scalar(@$nohitQueryIds), $readAFile, $readBFile, $pairPercentDifferenceThreshold, $minMaxAccepts );
+            doSearch( scalar(@$nohitQueryIds), $readAFile, $singlePercentDifferenceThreshold, $minMaxAccepts );
 
-        print STDERR "Finished round at threshold $pairPercentDifferenceThreshold; "
+        print STDERR "Finished round at threshold $singlePercentDifferenceThreshold; "
             . scalar(@$nohitQueryIds)
             . " NOHIT, "
             . scalar(@$tooManyHitQueryIdsThisRound)

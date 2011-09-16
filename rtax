@@ -40,16 +40,15 @@ fi
 
 
 # choose the "best" taxonomy assignment by walking down the tree, including info on how many ref sequences agree at each level
+# and pipe directly into the cleanup scripts instead of using temp files
 
-$scripts/exactMatchTaxonDistribution.pl $taxonomy rawhits > rawtaxonomy
+$scripts/rtaxVote.pl $taxonomy rawhits | $scripts/classificationQualityFilter.pl 1 0.0 0.5 | $scripts/classificationQualityStripper.pl
 
 # filter the taxonomy strings to the finest rank where half of the hits agree (out of all the hits, i.e. including in the denominator those hits with no annotation)
-
-$scripts/classificationQualityFilter.pl 1 0.0 0.5 < rawtaxonomy > filteredtaxonomy
+#$scripts/classificationQualityFilter.pl 1 0.0 0.5 < rawtaxonomy > filteredtaxonomy
 
 # clean up the resulting output and provide it to STDOUT
-
-$scripts/classificationQualityStripper.pl < filteredtaxonomy 
+#$scripts/classificationQualityStripper.pl < filteredtaxonomy 
 
 # remove the temp directory
 # (comment out to debug or grab intermediate results)

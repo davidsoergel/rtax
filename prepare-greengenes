@@ -58,7 +58,7 @@ $scripts/parseUclustClusters.pl gg.nr.uc > gg.nr.cl
 
 # find consensus taxonomy per cluster
 echo finding consensus taxonomy per cluster
-$scripts/exactMatchTaxonDistribution.pl greengenes.taxonomy gg.nr.cl > gg.nr.taxonomy.raw
+$scripts/rtaxVote.pl greengenes.taxonomy gg.nr.cl > gg.nr.taxonomy.raw
 
 echo cleaning up taxonomy output
 $scripts/classificationQualityFilter.pl 1 0.25 0.1 < gg.nr.taxonomy.raw > gg.nr.taxonomy.filtered
