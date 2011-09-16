@@ -29,7 +29,6 @@ queryB=$4
 tempdir=/tmp/rtax.$RANDOM
 mkdir $tempdir
 cd $tempdir
-echo `pwd`
 
 # perform the search
 

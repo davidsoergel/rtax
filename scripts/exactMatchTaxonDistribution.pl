@@ -26,8 +26,8 @@ sub loadTaxonomy {
     my $lines = 0;
     while ( my $line = <TAX> ) {
 		chomp $line;
-		my ( $prokMSAid, $taxString ) = split( /\t/, $line )
-        my ( $prokMSAid, @taxonomy ) = split( /; /, $taxString );
+		my ( $prokMSAid, $taxString ) = split( /\t/, $line );
+        my ( @taxonomy ) = split( /; /, $taxString );
 
 	    if ( @taxonomy && ($taxonomy[0] eq "" || $taxonomy[0] =~ /^(\d+\.?\d*|\.\d+)$/ )) {
 	        # value is numeric or empty, must be the pcid width of the target cluster
@@ -37,12 +37,12 @@ sub loadTaxonomy {
 
         $taxonomies{$prokMSAid} = \@taxonomy;
 
-        my $taxString = "";
-        for my $taxElem (@taxonomy) {
-            $taxString .= "$taxElem; ";
-
-            #			$taxonomyPrior{$taxString}++;
-        }
+#       my $taxString = "";
+#        for my $taxElem (@taxonomy) {
+#            $taxString .= "$taxElem; ";
+#
+#            #			$taxonomyPrior{$taxString}++;
+#       }
         $lines++;
     }
     close TAX;

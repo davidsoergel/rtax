@@ -1,0 +1,73 @@
+#!/bin/sh
+
+cur=`pwd`
+
+# we want to call subsidiary scripts in the "scripts" subdir, but we don't know where we're installed or what the working directory is.
+# solution from http://hintsforums.macworld.com/archive/index.php/t-73839.html
+
+IFS=$' \t\n'
+declare -x PATH=/bin:/usr/bin
+arg=$0; [[ -L $0 ]] && arg=$(stat -f '%Y' "$0")
+pth=$(2>/dev/null cd "${arg%/*}" >&2; echo "`pwd -P`/${arg##*/}")
+par=$(dirname "$pth")
+scripts="$par/scripts"
+
+if [[ ( $# -ne 1 ) && ($# -ne 0) ]]
+then
+  echo "Usage: `basename $0`   (in a directory containing greengenes16SrRNAgenes.txt.gz)"
+  exit 1
+fi
+
+# Grab the command-line arguments
+
+#gg=$1
+usearch=`which usearch`
+if [[ ($# -ne 0) ]]
+then
+    usearch=$1
+fi
+echo using usearch: $usearch
+
+# create a temporary working directory
+
+tempdir=/tmp/rtax.$RANDOM
+mkdir $tempdir
+cd $tempdir
+
+
+# Extract the sequence and taxonomy information:
+#echo gunzip -c -S .gz $cur/greengenes16SrRNAgenes.txt.gz \| $scripts/greengenesExtract.pl
+echo Extracting raw fasta and taxonomy files
+gunzip -c -S .gz $cur/greengenes16SrRNAgenes.txt.gz | $scripts/greengenesExtract.pl
+
+# That will write greengenes.fasta and greengenes.taxonomy into the current directory.
+
+# In our experiments, we cluster the reference sequences into 99% id OTUs, and find a consensus taxonomy string for each resulting cluster.
+
+# sort by length
+echo sorting fasta file by length
+$usearch --sort greengenes.fasta --output greengenes.fasta.sorted
+
+# cluster
+echo clustering at 99% identity
+$usearch --cluster greengenes.fasta.sorted --usersort --iddef 2 --uc gg.nr.uc --seedsout $cur/gg.nr.fasta --id 0.99 --maxrejects 128 --nowordcountreject
+             
+# parse clusters
+echo parsing clusters
+$scripts/parseUclustClusters.pl gg.nr.uc > gg.nr.cl
+
+# find consensus taxonomy per cluster
+echo finding consensus taxonomy per cluster
+$scripts/exactMatchTaxonDistribution.pl greengenes.taxonomy gg.nr.cl > gg.nr.taxonomy.raw
+
+echo cleaning up taxonomy output
+$scripts/classificationQualityFilter.pl 1 0.25 0.1 < gg.nr.taxonomy.raw > gg.nr.taxonomy.filtered
+$scripts/classificationQualityStripper.pl <  gg.nr.taxonomy.filtered > $cur/gg.nr.taxonomy 
+
+echo wrote $cur/gg.nr.fasta and $cur/gg.nr.taxonomy 
+
+
+# remove the temp directory
+# (comment out to debug or grab intermediate results)
+
+rm -rf $tempdir

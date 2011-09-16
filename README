@@ -1,13 +1,13 @@
 RTAX: Rapid and accurate taxonomic classification of short paired-end
       sequence reads from the 16S ribosomal RNA gene.
 
-David A. W. Soergel 1*, Rob Knight 2, and Steven E. Brenner 1
+David A. W. Soergel 1 and Rob Knight 2
 
 1 Department of Plant and Microbial Biology,
   University of California, Berkeley 
 2 Howard Hughes Medical Institute and Department of Chemistry 
   and Biochemistry, University of Colorado at Boulder
-* Corresponding author: soergel@berkeley.edu
+* Corresponding author (current address): soergel@cs.umass.edu
 
 Version 0.9  (September 7, 2011)
 
@@ -26,9 +26,11 @@ Requirements
 
 * A reference database consisting of sequences for which taxonomy assignments are known.  (See the GreenGenes section below).  Two files are needed:
   1. a FASTA file containing the sequences, and 
-  2. a file listing taxonomy strings for each sequence ID found in the FASTA file.  The format of this file is XXXXX
+  2. a file listing taxonomy strings for each sequence ID found in the FASTA file.  The format of this file is
 
+sequenceid	kingdom; phylum; class; order;...
 
+one entry per line, where sequenceid and the taxonomy string are separated by a single tab, and the taxonomy string itself is delimited by semicolons.
 
 
 Installation
@@ -38,20 +40,23 @@ RTAX consists of a set of perl scripts and a shell script ("rtax") to wire them 
 
 The perl scripts must remain in the "scripts" directory below the "rtax" shell script, but the latter can be symlinked anywhere for convenience.  A common pattern might be to place the whole package at /usr/local/rtax, and then symlink the script into your path (e.g., "ln -s /usr/local/rtax/rtax /usr/local/bin").
 
-The scripts should be executable ("chmod a+x rtax; chmod a+x scripts/*.pl" if for some reason they're not), and they expect perl to be available at /usr/bin/perl (edit the first line of each script if not).
 
+Preparing the GreenGenes reference database
+-------------------------------------------
 
-GreenGenes reference database
------------------------------
+An RTAX-formatted reference database based on GreenGenes (version of May 31, 2011) is available at http://dev.davidsoergel.com/rtax/greengenes.reference.20110531.tgz.
 
-Download the complete GreenGenes database:
+To regenerate these files (e.g. with a newer GreenGenes version): download the complete GreenGenes database to a disk with at least 20GB free space (as of Sep 2011, but GreenGenes is growing rapidly):
 
     wget http://greengenes.lbl.gov/Download/Sequence_Data/Greengenes_format/greengenes16SrRNAgenes.txt.gz
 
-Extract the sequence and taxonomy information:
-     zcat greengenes16SrRNAgenes.txt | scripts/greengenesExtract.pl
+Then, while in the directory containing the downloaded .txt.gz file, run prepare-greengenes.  (If usearch is not in your path, use "prepare-greengenes /path/to/usearch").  This takes a couple of hours.  Go out for coffee and whatnot.  When you get back, you'll find two files have been produced: gg.nr.fasta and gg.nr.taxonomy.  These are the result of clustering the GreenGenes input file at 99% identity, finding consensus taxonomy strings for each cluster, and formatting the result as needed for use as an RTAX reference database.
 
-That will write greengenes.fasta and greengenes.taxonomy into the current directory.
+
+Preparing a non-GreenGenes reference database
+---------------------------------------------
+
+You can certainly use different databases; if you have any trouble producing the fasta and taxonomy files in the required format, examine the prepare-greengenes script for hints and feel free to contact us for help.
 
 
 Running RTAX
@@ -59,7 +64,9 @@ Running RTAX
 
 The script is run as follows:
 
-    rtax reference.fasta reference.taxonomy queryA.fasta [queryB.fasta] > classifications.out 
+    rtax gg.nr.fasta gg.nr.taxonomy queryA.fasta [queryB.fasta] > classifications.out 
+
+Substitute a different reference database for the GreenGenes files if desired, of course.
 
 Note that the two query files must provide mate-paired reads with exactly
 matching identifiers (though they need not be in the same order).  Any ids
@@ -70,14 +77,11 @@ us for help accomodating alternate naming schemes for the paired reads
 RTAX may be run for single-ended reads as well; simply exclude the queryB
 parameter in this case.
 
-Various progress messages are provided on stderr, and the predicted classification for each query is provided on stdout.  The output format is tab-delimited, as follows:
-
-sequence_id	
-
+Various progress messages are provided on stderr, and the predicted classification for each query is provided on stdout.  The output format is the same as the taxonomy file input format above.
 
 Temporary files are created in /tmp/rtax.SOMENUMBER.  These are deleted upon successful termination, but may need to be manually cleaned up in the event of an error of some sort.
 
-In addition, indexes into the FASTA files are written in the same directory as the files themselves (which must therefore be writeable).
+In addition, an index into the input FASTA file is written in the same directory as the file itself.
 
 
 Plumbing
