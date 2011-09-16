@@ -22,15 +22,20 @@ Requirements
 	
  * Getopt::Long ("sudo cpan Getopt::Long")
 
- * USEARCH (http://www.drive5.com/usearch/).  RTAX has been tested with v4.1.93 and v5.0.144.
+ * USEARCH (http://www.drive5.com/usearch/).  RTAX has been tested with
+    v4.1.93 and v5.0.144.
 
-* A reference database consisting of sequences for which taxonomy assignments are known.  (See the GreenGenes section below).  Two files are needed:
-  1. a FASTA file containing the sequences, and 
-  2. a file listing taxonomy strings for each sequence ID found in the FASTA file.  The format of this file is
+* A reference database consisting of sequences for which taxonomy assignments
+    are known.  (See the GreenGenes section below).  Two files are needed:
+    1. a FASTA file containing the sequences, and 
+    2. a file listing taxonomy strings for each sequence ID found in the 
+         FASTA file.  The format of this file is
 
-sequenceid	kingdom; phylum; class; order;...
+sequenceid	kingdom; phylum; class; order; ...
 
-one entry per line, where sequenceid and the taxonomy string are separated by a single tab, and the taxonomy string itself is delimited by semicolons.
+         one entry per line, where sequenceid and the taxonomy string are
+         separated by a single tab, and the taxonomy string itself is delimited 
+         by semicolons.
 
 
 Installation
@@ -44,13 +49,13 @@ The perl scripts must remain in the "scripts" directory below the "rtax" shell s
 Preparing the GreenGenes reference database
 -------------------------------------------
 
-An RTAX-formatted reference database based on GreenGenes (version of May 31, 2011) is available at http://dev.davidsoergel.com/rtax/greengenes.reference.20110531.tgz.  That contains gg.nr.fasta and gg.nr.taxonomy, which are the result of clustering the GreenGenes input file at 99% identity, finding consensus taxonomy strings for each cluster, and formatting the result as needed for use with RTAX.
+An RTAX-formatted reference database based on GreenGenes (version of May 31, 2011) is available at http://dev.davidsoergel.com/rtax/greengenes.reference.20110531.tgz.  That contains gg.nr.fasta and gg.nr.taxonomy, which are the result of clustering the GreenGenes input file at 98.5% identity, finding consensus taxonomy strings for each cluster, and formatting the result as needed for use with RTAX.
 
 To regenerate these files (e.g. with a newer GreenGenes version): download the complete GreenGenes database to a disk with at least 20GB free space (as of Sep 2011, but GreenGenes is growing rapidly):
 
     wget http://greengenes.lbl.gov/Download/Sequence_Data/Greengenes_format/greengenes16SrRNAgenes.txt.gz
 
-Then, while in the directory containing the downloaded .txt.gz file, run prepare-greengenes.  (If usearch is not in your path, use "prepare-greengenes /path/to/usearch").  This takes a couple of hours and about 4GB of memory.  Go out for coffee and whatnot.  When you get back, you'll find two files have been produced: gg.nr.fasta and gg.nr.taxonomy.  Note that the free (32-bit) version of USEARCH can use at most 2GB memory on some systems (e.g., Macs) and at most 4GB memory on others.  Thus, GreenGenes will soon be too large to cluster using USEARCH without a paid license.
+Then, while in the directory containing the downloaded .txt.gz file, run prepare-greengenes.  (If usearch is not in your path, use "prepare-greengenes /path/to/usearch").  This takes a couple of hours and about 4GB of memory.  Go out for coffee and whatnot.  When you get back, you'll find two files have been produced: gg.nr.fasta and gg.nr.taxonomy.  Note that the free (32-bit) version of USEARCH can use at most 2GB memory on most systems and at most 4GB memory on specially configured systems.  Thus, GreenGenes is already too large to cluster at 99% id using USEARCH without a paid license; this is why we now use 98.5% id clusters.
 
 
 Preparing a non-GreenGenes reference database
@@ -96,12 +101,5 @@ Taxonomy assignment proceeds in two phases, which we implement separately:
 2.  Find consensus taxonomy among each set of reference hits.  This is
 	implemented as rtaxVote.
 
-The output of one of the rtaxSearch programs can be piped directly into
-rtaxVote, if desired.  Thus a complete run, starting from paired query sequences
-and producing taxonomy assignments, looks like this:
-
- rtaxSearchPair --database db.fasta --queryA read1.fasta --queryB read2.fasta |\
- rtaxVote --taxonomy db.taxonomy > taxonomy.predictions.txt
-
-
-Run each script with no arguments for instructions regarding additional options.
+3.  Finally the detailed rtaxVote results are filtered and cleaned up 
+    for output.

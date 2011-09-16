@@ -49,8 +49,8 @@ echo sorting fasta file by length
 $usearch --sort greengenes.fasta --output greengenes.fasta.sorted
 
 # cluster
-echo clustering at 99% identity
-$usearch --cluster greengenes.fasta.sorted --usersort --iddef 2 --uc gg.nr.uc --seedsout $cur/gg.nr.fasta --id 0.99 --maxrejects 128 --nowordcountreject
+echo clustering at 98.5% identity
+$usearch --cluster greengenes.fasta.sorted --usersort --iddef 2 --uc gg.nr.uc --seedsout $cur/gg.nr.fasta --id 0.985 --maxrejects 128 --nowordcountreject
              
 # parse clusters
 echo parsing clusters
