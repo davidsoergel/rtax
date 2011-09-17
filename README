@@ -1,7 +1,7 @@
 RTAX: Rapid and accurate taxonomic classification of short paired-end
       sequence reads from the 16S ribosomal RNA gene.
 
-David A. W. Soergel 1 and Rob Knight 2
+David A. W. Soergel (1) and Rob Knight (2)
 
 1 Department of Plant and Microbial Biology,
   University of California, Berkeley 
@@ -9,7 +9,9 @@ David A. W. Soergel 1 and Rob Knight 2
   and Biochemistry, University of Colorado at Boulder
 * Corresponding author (current address): soergel@cs.umass.edu
 
-Version 0.9  (September 7, 2011)
+Version 0.9  (September 17, 2011)
+
+http://dev.davidsoergel.com/rtax
 
 
 Requirements
@@ -23,19 +25,28 @@ Requirements
  * Getopt::Long ("sudo cpan Getopt::Long")
 
  * USEARCH (http://www.drive5.com/usearch/).  RTAX has been tested with
-    v4.1.93 and v5.0.144.
+    v4.1.93 and v5.0.144.  Make sure that the program is in your search
+    path as "usearch", or provide its path explicitly in the "rtax" script.
 
 * A reference database consisting of sequences for which taxonomy assignments
-    are known.  (See the GreenGenes section below).  Two files are needed:
+    are known.  We provide prepared versions of the GreenGenes database on the
+    RTAX web site; see the GreenGenes section below for details.
+
+    Two files are needed:
     1. a FASTA file containing the sequences, and 
     2. a file listing taxonomy strings for each sequence ID found in the 
          FASTA file.  The format of this file is
 
-sequenceid	kingdom; phylum; class; order; ...
+sequenceid	pcidwidth	kingdom; phylum; class; order; ...
 
-         one entry per line, where sequenceid and the taxonomy string are
-         separated by a single tab, and the taxonomy string itself is delimited 
-         by semicolons.
+         one entry per line, where sequenceid, pcidwidth, and the taxonomy
+         string are separated by a single tab, and the taxonomy string itself is
+         delimited either by semicolons or by tabs.  The pcidwidth column is
+         optional, and (if present) is ignored in the current version of RTAX
+         anyway.  (In our usage, we cluster the reference database into 99% id
+         OTUs, representing each by a single "seed" sequence.  This column then
+         lists the largest pairwise %id difference between the cluster seed
+         and any cluster member.)
 
 
 Installation
@@ -44,24 +55,6 @@ Installation
 RTAX consists of a set of perl scripts and a shell script ("rtax") to wire them together.  No compilation is needed; just extract the package to a convenient location.
 
 The perl scripts must remain in the "scripts" directory below the "rtax" shell script, but the latter can be symlinked anywhere for convenience.  A common pattern might be to place the whole package at /usr/local/rtax, and then symlink the script into your path (e.g., "ln -s /usr/local/rtax/rtax /usr/local/bin").
-
-
-Preparing the GreenGenes reference database
--------------------------------------------
-
-An RTAX-formatted reference database based on GreenGenes (version of May 31, 2011) is available at http://dev.davidsoergel.com/rtax/greengenes.reference.20110531.tgz.  That contains gg.nr.fasta and gg.nr.taxonomy, which are the result of clustering the GreenGenes input file at 98.5% identity, finding consensus taxonomy strings for each cluster, and formatting the result as needed for use with RTAX.
-
-To regenerate these files (e.g. with a newer GreenGenes version): download the complete GreenGenes database to a disk with at least 20GB free space (as of Sep 2011, but GreenGenes is growing rapidly):
-
-    wget http://greengenes.lbl.gov/Download/Sequence_Data/Greengenes_format/greengenes16SrRNAgenes.txt.gz
-
-Then, while in the directory containing the downloaded .txt.gz file, run prepare-greengenes.  (If usearch is not in your path, use "prepare-greengenes /path/to/usearch").  This takes a couple of hours and about 4GB of memory.  Go out for coffee and whatnot.  When you get back, you'll find two files have been produced: gg.nr.fasta and gg.nr.taxonomy.  Note that the free (32-bit) version of USEARCH can use at most 2GB memory on most systems and at most 4GB memory on specially configured systems.  Thus, GreenGenes is already too large to cluster at 99% id using USEARCH without a paid license; this is why we now use 98.5% id clusters.
-
-
-Preparing a non-GreenGenes reference database
----------------------------------------------
-
-You can certainly use different databases, or GreenGenes clustered by different means or with different parameters (or not at all, though this approach will have poopr performance).  If you have any trouble producing the reference fasta and taxonomy files in the required format, examine the prepare-greengenes script for hints, and feel free to contact us for help.
 
 
 Running RTAX
@@ -82,11 +75,35 @@ us for help accomodating alternate naming schemes for the paired reads
 RTAX may be run for single-ended reads as well; simply exclude the queryB
 parameter in this case.
 
-Various progress messages are provided on stderr, and the predicted classification for each query is provided on stdout.  The output format is the same as the taxonomy file input format above.
+Various progress messages are provided on stderr, and the predicted classification for each query is provided on stdout.  The output format is essentially the same as the taxonomy file input format above.  The second column indicates the best %id observed between the query sequence and any reference sequence, and the taxonomy string is tab-delimited.
 
 Temporary files are created in /tmp/rtax.SOMENUMBER.  These are deleted upon successful termination, but may need to be manually cleaned up in the event of an error of some sort.
 
 In addition, an index into the input FASTA file is written in the same directory as the file itself.
+
+
+
+Preparing the GreenGenes reference database
+-------------------------------------------
+
+An RTAX-formatted reference database based on GreenGenes (version of May 31, 2011) is available at http://dev.davidsoergel.com/rtax/greengenes.reference.20110531.tgz.  That contains gg.nr.fasta and gg.nr.taxonomy, which are the result of clustering the GreenGenes input file at 98.5% identity, finding consensus taxonomy strings for each cluster, and formatting the result as needed for use with RTAX.
+
+To regenerate these files (e.g. with a newer GreenGenes version): download the complete GreenGenes database to a disk with at least 20GB free space (as of Sep 2011, but GreenGenes is growing rapidly):
+
+    wget http://greengenes.lbl.gov/Download/Sequence_Data/Greengenes_format/greengenes16SrRNAgenes.txt.gz
+
+Then, while in the directory containing the downloaded .txt.gz file, run prepare-greengenes.  (If usearch is not in your path, use "prepare-greengenes /path/to/usearch").  This takes a couple of hours and about 4GB of memory.  Go out for coffee and whatnot.  When you get back, you'll find two files have been produced: gg.nr.fasta and gg.nr.taxonomy.
+
+Note that the free (32-bit) version of USEARCH can use at most 2GB memory on some systems and at most 4GB memory on others.  2GB memory is not sufficient to cluster the current version of GreenGenes, and 4GB barely suffices.  Thus, GreenGenes will soon be too large to cluster at 99% id using USEARCH without a paid 64-bit license.  (Note that USEARCH reports "2.0 GB available" even if in fact 4GB are available, so don't be discouraged until it actually crashes.)  When 4GB is also insufficient, and lacking a paid USEARCH license, a possible strategy will be to cluster at lower %id thresholds.  This requires less memory and produces a smaller, less fine-grained reference database.  We have not explored the impact of doing this on classification performance.
+
+
+
+
+Preparing a non-GreenGenes reference database
+---------------------------------------------
+
+You can certainly use different databases, or GreenGenes clustered by different means or with different parameters (or not at all, though this approach will have poor performance).  If you have any trouble producing the reference fasta and taxonomy files in the required format, examine the prepare-greengenes script for hints, and feel free to contact us for help.
+
 
 
 Plumbing

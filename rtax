@@ -1,5 +1,23 @@
 #!/bin/sh
 
+echo 'RTAX: Rapid and accurate taxonomic classification of short paired-end'
+echo '      sequence reads from the 16S ribosomal RNA gene.'
+echo ''
+echo 'David A. W. Soergel (1) and Rob Knight (2)'
+echo ''
+echo '1 Department of Plant and Microbial Biology,'
+echo '  University of California, Berkeley '
+echo '2 Howard Hughes Medical Institute and Department of Chemistry '
+echo '  and Biochemistry, University of Colorado at Boulder'
+echo '* Corresponding author (current address): soergel@cs.umass.edu'
+echo ''
+echo 'Version 0.9  (September 17, 2011)'
+echo ''
+echo 'http://dev.davidsoergel.com/rtax'
+echo ''
+
+
+
 # we want to call subsidiary scripts in the "scripts" subdir, but we don't know where we're installed or what the working directory is.
 # solution from http://hintsforums.macworld.com/archive/index.php/t-73839.html
 
@@ -23,6 +41,16 @@ taxonomy=$2
 queryA=$3
 queryB=$4
 
+# find USEARCH, or hardcode if needed (could use an environment variable...)
+# usearch=/path/to/usearch
+usearch=`which usearch`
+if [[ ($# -eq 0) ]]
+then
+    echo "usearch not found in path.  Please correct, or just hardcode the path in the rtax script."
+    exit 1
+fi
+echo using usearch: $usearch
+echo
 
 # create a temporary working directory
 
@@ -33,9 +61,9 @@ cd $tempdir
 # perform the search
 
 if [ $queryB ]; then
-    $scripts/rtaxSearchPair.pl --database $refdb --queryA $queryA --queryB $queryB > rawhits
+    $scripts/rtaxSearchPair.pl --database $refdb --queryA $queryA --queryB $queryB --usearch $usearch > rawhits
 else
-    $scripts/rtaxSearchSingle.pl --database $refdb --queryA $queryA > rawhits
+    $scripts/rtaxSearchSingle.pl --database $refdb --queryA $queryA  --usearch $usearch > rawhits
 fi
 
 
@@ -43,6 +71,8 @@ fi
 # and pipe directly into the cleanup scripts instead of using temp files
 
 $scripts/rtaxVote.pl $taxonomy rawhits | $scripts/classificationQualityFilter.pl 1 0.0 0.5 | $scripts/classificationQualityStripper.pl
+
+# The output of this process includes the pcid-width column and a tab-delimited tax string
 
 # filter the taxonomy strings to the finest rank where half of the hits agree (out of all the hits, i.e. including in the denominator those hits with no annotation)
 #$scripts/classificationQualityFilter.pl 1 0.0 0.5 < rawtaxonomy > filteredtaxonomy

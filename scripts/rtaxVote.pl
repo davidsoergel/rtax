@@ -26,8 +26,14 @@ sub loadTaxonomy {
     my $lines = 0;
     while ( my $line = <TAX> ) {
 		chomp $line;
-		my ( $prokMSAid, $taxString ) = split( /\t/, $line );
-        my ( @taxonomy ) = split( /; /, $taxString );
+		
+		# try to accept several formats:
+		# semicolon or tab-delimited taxonomy strings
+		# and including the "pcid-width" column between the sequence id and
+		# the taxonomy string, or not
+		
+		my ( $prokMSAid, @taxonomy ) = split( /[;\t]/, $line );
+        #my ( @taxonomy ) = split( /; /, $taxString );
 
 	    if ( @taxonomy && ($taxonomy[0] eq "" || $taxonomy[0] =~ /^(\d+\.?\d*|\.\d+)$/ )) {
 	        # value is numeric or empty, must be the pcid width of the target cluster
