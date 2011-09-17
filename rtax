@@ -54,7 +54,8 @@ echo
 
 # create a temporary working directory
 
-tempdir=/tmp/rtax.$RANDOM
+#tempdir=/tmp/rtax.$RANDOM
+tempdir=./rtax.$RANDOM
 mkdir $tempdir
 cd $tempdir
 

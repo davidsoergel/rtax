@@ -77,7 +77,7 @@ parameter in this case.
 
 Various progress messages are provided on stderr, and the predicted classification for each query is provided on stdout.  The output format is essentially the same as the taxonomy file input format above.  The second column indicates the best %id observed between the query sequence and any reference sequence, and the taxonomy string is tab-delimited.
 
-Temporary files are created in /tmp/rtax.SOMENUMBER.  These are deleted upon successful termination, but may need to be manually cleaned up in the event of an error of some sort.
+Temporary files are created in ./rtax.SOMENUMBER below the working directory.  These can be quite large; if more space is available in another location (e.g., under /tmp), edit the "tempdir" variable in the rtax script appropriately.  The temporary directory is deleted upon successful termination, but may need to be manually cleaned up in the event of an error of some sort.
 
 In addition, an index into the input FASTA file is written in the same directory as the file itself.
 
