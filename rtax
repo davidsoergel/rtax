@@ -1,5 +1,6 @@
 #!/bin/sh
 
+echo
 echo 'RTAX: Rapid and accurate taxonomic classification of short paired-end'
 echo '      sequence reads from the 16S ribosomal RNA gene.'
 echo ''
@@ -22,7 +23,7 @@ echo ''
 # solution from http://hintsforums.macworld.com/archive/index.php/t-73839.html
 
 IFS=$' \t\n'
-declare -x PATH=/bin:/usr/bin
+#declare -x PATH=/bin:/usr/bin:/usr/local/bin
 arg=$0; [[ -L $0 ]] && arg=$(stat -f '%Y' "$0")
 pth=$(2>/dev/null cd "${arg%/*}" >&2; echo "`pwd -P`/${arg##*/}")
 par=$(dirname "$pth")
