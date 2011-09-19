@@ -562,7 +562,7 @@ sub main {
         my $numRemaining = $nohitQueryIds->[0] eq "ALL" ? scalar(@intersection) : scalar(@$nohitQueryIds);
         
         ( $nohitQueryIds, $tooManyHitQueryIdsThisRound ) =
-            doPairSearch( scalar(@$nohitQueryIds), $readAFile, $readBFile, $pairPercentDifferenceThreshold, $minMaxAccepts );
+            doPairSearch( $numRemaining, $readAFile, $readBFile, $pairPercentDifferenceThreshold, $minMaxAccepts );
 
         print STDERR "Finished round at threshold $pairPercentDifferenceThreshold; "
             . scalar(@$nohitQueryIds)
