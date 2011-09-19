@@ -1,28 +1,69 @@
 Caution re. using newer versions of GreenGenes
 ----------------------------------------------
 
-As of September 2011, we do not recommend using a version of GreenGenes newer than March 11, 2011.  The reason is that GreenGenes has expanded dramatically in this time--from about half a million to about one million sequences--but the annotation process has not kept up.  Thus, newer versions contain much higher proportions of sequences that either carry no taxonomic annotation at all or that list "unclassified" at many or even all ranks.
+As of September 2011, we do not recommend using a version of GreenGenes newer
+than March 11, 2011. The reason is that GreenGenes has expanded dramatically in
+this time--from about half a million to about one million sequences--but the
+annotation process has not kept up. Thus, newer versions contain much higher
+proportions of sequences that either carry no taxonomic annotation at all or
+that list "unclassified" at many or even all ranks.
 
-At present, RTAX assumes that a sequence that is either not annotated or "unclassified" at some rank does not belong to any known taxonomic group at that rank.  That is, we assume that the lack of an annotation constitutes an assertion that the sequence is novel.  This assumption makes our taxonomic assignment process more conservative.  Our interpretation is very different from the alternative, that the sequence could perhaps be fully annotated with known names, but that this simply has not been done yet.
+At present, RTAX assumes that a sequence that is either not annotated or
+"unclassified" at some rank does not belong to any known taxonomic group at that
+rank. That is, we assume that the lack of an annotation constitutes an assertion
+that the sequence is novel. This assumption makes our taxonomic assignment
+process more conservative. Our interpretation is very different from the
+alternative, that the sequence could perhaps be fully annotated with known
+names, but that this simply has not been done yet.
 
-This question manifests itself in the voting procedure.  We require that half of _all_ hits to a query sequence agree on a taxonomic group (at whatever rank) in order to make an assignment.  We include hits with no annotation in the denominator, corresponding to the idea that those sequences do not belong to the group being considered in the numerator.
+This question manifests itself in the voting procedure. We require that half of
+_all_ hits to a query sequence agree on a taxonomic group (at whatever rank) in
+order to make an assignment. We include hits with no annotation in the
+denominator, corresponding to the idea that those sequences do not belong to the
+group being considered in the numerator.
 
-We reasoned that the alternative procedure--considering the proportion of concordant hits out of only those carrying any annotation at all (at a given rank)--risks overly biasing taxonomic assignments towards previously named groups.
+We reasoned that the alternative procedure--considering the proportion of
+concordant hits out of only those carrying any annotation at all (at a given
+rank)--risks overly biasing taxonomic assignments towards previously named
+groups.
 
-On the other hand, our inclusion of unannotated sequences in the denominator means that, when those sequences are highly prevalent, the annotated sequences in the numerator rarely reach the 50% threshold required to make an assignment--even if they are in perfect agreement.
+On the other hand, our inclusion of unannotated sequences in the denominator
+means that, when those sequences are highly prevalent, the annotated sequences
+in the numerator rarely reach the 50% threshold required to make an
+assignment--even if they are in perfect agreement.
 
-We can hope that GreenGenes taxonomic assignments will become more comprehensive in the future.  Alternatively, we should carefully consider whether it is appropriate to switch to the more permissive approach of ignoring unannotated sequences when voting at each rank, or if some alternative voting procedure better balances the risks of misannotation versus low classification rate.  Until this is resolved, it seems prudent to simply use the March 2011 database since it is known to work well.
-
+We can hope that GreenGenes taxonomic assignments will become more comprehensive
+in the future. Alternatively, we should carefully consider whether it is
+appropriate to switch to the more permissive approach of ignoring unannotated
+sequences when voting at each rank, or if some alternative voting procedure
+better balances the risks of misannotation versus low classification rate. Until
+this is resolved, it seems prudent to simply use the March 2011 database since
+it is known to work well.
 
 Preparing the Greengenes reference database
 -------------------------------------------
 
-To regenerate the GreenGenes reference database files for use with RTAX (e.g. with a newer GreenGenes version):
+To regenerate the GreenGenes reference database files for use with RTAX (e.g.
+with a newer GreenGenes version):
 
-Download the complete GreenGenes database to a disk with at least 20GB free space (as of Sep 2011, but GreenGenes is growing rapidly):
+Download the complete GreenGenes database to a disk with at least 20GB free
+space (as of Sep 2011, but GreenGenes is growing rapidly):
 
     wget http://greengenes.lbl.gov/Download/Sequence_Data/Greengenes_format/greengenes16SrRNAgenes.txt.gz
 
-Then, while in the directory containing the downloaded .txt.gz file, run prepare-greengenes.  (If usearch is not in your path, use "prepare-greengenes /path/to/usearch").  This takes a couple of hours and about 4GB of memory.  Go out for coffee and whatnot.  When you get back, you'll find two files have been produced: gg.nr.fasta and gg.nr.taxonomy.
+Then, while in the directory containing the downloaded .txt.gz file, run
+prepare-greengenes. (If usearch is not in your path, use "prepare-greengenes
+/path/to/usearch"). This takes a couple of hours and about 4GB of memory. Go out
+for coffee and whatnot. When you get back, you'll find two files have been
+produced: gg.nr.fasta and gg.nr.taxonomy.
 
-Note that the free (32-bit) version of USEARCH can use at most 2GB memory on some systems and at most 4GB memory on others.  2GB memory is not sufficient to cluster the current version of GreenGenes, and 4GB barely suffices.  Thus, GreenGenes will soon be too large to cluster at 99% id using USEARCH without a paid 64-bit license.  (Note that USEARCH reports "2.0 GB available" even if in fact 4GB are available, so don't be discouraged until it actually crashes.)  When 4GB is also insufficient, and lacking a paid USEARCH license, a possible strategy will be to cluster at lower %id thresholds.  This requires less memory and produces a smaller, less fine-grained reference database.  We have not explored the impact of doing this on classification performance.
+Note that the free (32-bit) version of USEARCH can use at most 2GB memory on
+some systems and at most 4GB memory on others. 2GB memory is not sufficient to
+cluster the current version of GreenGenes, and 4GB barely suffices. Thus,
+GreenGenes will soon be too large to cluster at 99% id using USEARCH without a
+paid 64-bit license. (Note that USEARCH reports "2.0 GB available" even if in
+fact 4GB are available, so don't be discouraged until it actually crashes.) When
+4GB is also insufficient, and lacking a paid USEARCH license, a possible
+strategy will be to cluster at lower %id thresholds. This requires less memory
+and produces a smaller, less fine-grained reference database. We have not
+explored the impact of doing this on classification performance.
