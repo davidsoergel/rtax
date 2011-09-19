@@ -431,12 +431,16 @@ sub main {
             $readAFile = extractFasta( $indexA, $nohitQueryIds );
         }
 
+
+        my $numRemaining = ($nohitQueryIds->[0] eq "ALL") ? $indexA->count_records() : scalar(@$nohitQueryIds);
+        
+
         # within doSearch we escalate maxAccepts, so if a queryLabel is still marked tooManyHits at this point,
         # that means that there are more than maxMaxAccepts hits for this threshold--
         # so there's really no point in testing this query again at an even lower threshold
         my $tooManyHitQueryIdsThisRound;
         ( $nohitQueryIds, $tooManyHitQueryIdsThisRound ) =
-            doSearch( scalar(@$nohitQueryIds), $readAFile, $singlePercentDifferenceThreshold, $minMaxAccepts );
+            doSearch( $numRemaining, $readAFile, $singlePercentDifferenceThreshold, $minMaxAccepts );
 
         print STDERR "Finished round at threshold $singlePercentDifferenceThreshold; "
             . scalar(@$nohitQueryIds)
