@@ -10,7 +10,7 @@ declare -x PATH=/bin:/usr/bin
 arg=$0; [[ -L $0 ]] && arg=$(stat -f '%Y' "$0")
 pth=$(2>/dev/null cd "${arg%/*}" >&2; echo "`pwd -P`/${arg##*/}")
 par=$(dirname "$pth")
-scripts="$par/scripts"
+scripts="$par/../scripts"
 
 if [[ ( $# -ne 1 ) && ($# -ne 0) ]]
 then

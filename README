@@ -17,6 +17,9 @@ http://dev.davidsoergel.com/rtax
 Requirements
 ------------
 
+ * Hardware: memory requirements vary with the size of the reference database;
+    for the version of GreenGenes we provide, ~4GB is needed.
+
  * BioPerl.  See http://www.bioperl.org/wiki/Installing_Bioperl_for_Unix,
 	particularly the "Easy install using CPAN" section.
 	(we use only Bio::Index::Fasta so the many optional BioPerl

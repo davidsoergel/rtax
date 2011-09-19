@@ -559,7 +559,7 @@ sub main {
         # so there's really no point in testing this query again at an even lower threshold
         my $tooManyHitQueryIdsThisRound;
         
-        my $numRemaining = $nohitQueryIds->[0] eq "ALL" ? scalar(@intersection) : scalar(@$nohitQueryIds);
+        my $numRemaining = ($nohitQueryIds->[0] eq "ALL") ? scalar(@intersection) : scalar(@$nohitQueryIds);
         
         ( $nohitQueryIds, $tooManyHitQueryIdsThisRound ) =
             doPairSearch( $numRemaining, $readAFile, $readBFile, $pairPercentDifferenceThreshold, $minMaxAccepts );
