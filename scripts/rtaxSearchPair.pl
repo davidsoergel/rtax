@@ -527,6 +527,12 @@ sub main {
             push @{ $count{$element} > 1 ? \@intersection : \@difference }, $element;
         }
     }
+    
+    # sequence ids mentioned in one of the two files, but not both
+    foreach my $element (@difference)
+    {
+        print "$element\t\tNOPRIMER\n";
+    }
 
     #print STDERR "intersection = " . ( join " ", @intersection ) . "\n";
 
@@ -552,6 +558,9 @@ sub main {
         # that means that there are more than maxMaxAccepts hits for this threshold--
         # so there's really no point in testing this query again at an even lower threshold
         my $tooManyHitQueryIdsThisRound;
+        
+        my $numRemaining = $nohitQueryIds->[0] eq "ALL" ? scalar(@intersection) : scalar(@$nohitQueryIds);
+        
         ( $nohitQueryIds, $tooManyHitQueryIdsThisRound ) =
             doPairSearch( scalar(@$nohitQueryIds), $readAFile, $readBFile, $pairPercentDifferenceThreshold, $minMaxAccepts );
 
