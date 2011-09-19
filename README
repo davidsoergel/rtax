@@ -89,7 +89,7 @@ In addition, an index into the input FASTA file is written in the same directory
 Using the GreenGenes reference database
 ---------------------------------------
 
-An RTAX-formatted reference database based on GreenGenes (version of August 25, 2010) is available at http://dev.davidsoergel.com/rtax/greengenes.reference.20100825.tgz.  That contains gg.nr.fasta and gg.nr.taxonomy, which are the result of clustering the GreenGenes input file at 99% identity, finding consensus taxonomy strings for each cluster, and formatting the result as needed for use with RTAX.
+An RTAX-formatted reference database based on GreenGenes (version of March 11, 2011) is available at http://dev.davidsoergel.com/rtax/greengenes.reference.20110311.tgz.  That contains gg.nr.fasta and gg.nr.taxonomy, which are the result of clustering the GreenGenes input file at 99% identity, finding consensus taxonomy strings for each cluster, and formatting the result as needed for use with RTAX.
 
 Please see the "greengenes" subdirectory in the RTAX distribution for information on using newer versions of GreenGenes.
 
