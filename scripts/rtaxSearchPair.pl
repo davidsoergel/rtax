@@ -521,7 +521,7 @@ sub main {
     #print STDERR "idsB = " . (join " ", @idsB) . "\n";
 
     foreach my $element ( @idsA, @idsB ) {
-        if (($element =~ / /) > 0)  # $indexA->db() should return parsed IDs
+        if (($element =~ /[\t ]/) > 0)  # $indexA->db() should return parsed IDs
             {            
             print STDERR "Invalid FASTA id: $element\n";
             exit(1)
