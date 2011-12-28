@@ -111,13 +111,15 @@ fi
 # usearch=/path/to/usearch
 set +e
 usearch=`which usearch`
-if [[ $usearch ]]
+if [ $? -eq 0 ] 
 then
+    echoerr using usearch: $usearch
+    echoerr
+else
     echoerr "usearch not found in path.  Please correct, or just hardcode the path in the rtax script."
     exit 1
 fi
-echoerr using usearch: $usearch
-echoerr
+
 set -e
 
 # create a temporary working directory
