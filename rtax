@@ -134,7 +134,9 @@ cd $tempdir
 
 if [ $delimiter ]; then
     $scripts/splitDelimitedFasta.pl $delimiter $queryA
-    $scripts/rtaxSearchPair.pl --database $refdb --queryA $queryA.a --queryB $queryA.b --usearch $usearch > rawhits
+    queryAa=`basename $queryA`.a
+    queryAb=`basename $queryA`.b
+    $scripts/rtaxSearchPair.pl --database $refdb --queryA $queryAa --queryB $queryAb --usearch $usearch > rawhits
 else
     if [ $queryB ]; then
         $scripts/rtaxSearchPair.pl --database $refdb --queryA $queryA --queryB $queryB --usearch $usearch > rawhits
