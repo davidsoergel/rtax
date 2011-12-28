@@ -521,7 +521,11 @@ sub main {
     #print STDERR "idsB = " . (join " ", @idsB) . "\n";
 
     foreach my $element ( @idsA, @idsB ) {
-        assert (($element =~ / /) == 0);  # $indexA->db() should return parsed IDs
+        if (($element =~ / /) > 0)  # $indexA->db() should return parsed IDs
+            {            
+            print STDERR "Invalid FASTA id: $element\n";
+            exit(1)
+            }
         $count{$element}++;
         }
     foreach my $element ( keys %count ) {
