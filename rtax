@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -eu
 
 function echoerr() { echo "$@" 1>&2; }
 
@@ -110,7 +110,7 @@ fi
 # find USEARCH, or hardcode if needed (could use an environment variable...)
 # usearch=/path/to/usearch
 usearch=`which usearch`
-if [[ ($# -eq 0) ]]
+if [[ $usearch ]]
 then
     echoerr "usearch not found in path.  Please correct, or just hardcode the path in the rtax script."
     exit 1
@@ -131,11 +131,12 @@ cd $tempdir
 if [ $delimiter ]; then
     $scripts/splitDelimitedFasta.pl $delimiter $queryA
     $scripts/rtaxSearchPair.pl --database $refdb --queryA $queryA.a --queryB $queryA.b --usearch $usearch > rawhits
-else if [ $queryB ]; then
-    $scripts/rtaxSearchPair.pl --database $refdb --queryA $queryA --queryB $queryB --usearch $usearch > rawhits
 else
-    $scripts/rtaxSearchSingle.pl --database $refdb --queryA $queryA  --usearch $usearch > rawhits
-fi
+    if [ $queryB ]; then
+        $scripts/rtaxSearchPair.pl --database $refdb --queryA $queryA --queryB $queryB --usearch $usearch > rawhits
+    else
+        $scripts/rtaxSearchSingle.pl --database $refdb --queryA $queryA  --usearch $usearch > rawhits
+    fi
 fi
 
 
