@@ -109,6 +109,7 @@ fi
 
 # find USEARCH, or hardcode if needed (could use an environment variable...)
 # usearch=/path/to/usearch
+set +e
 usearch=`which usearch`
 if [[ $usearch ]]
 then
@@ -117,6 +118,7 @@ then
 fi
 echoerr using usearch: $usearch
 echoerr
+set -e
 
 # create a temporary working directory
 
