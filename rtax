@@ -1,21 +1,23 @@
 #!/bin/sh
 
-echo
-echo 'RTAX: Rapid and accurate taxonomic classification of short paired-end'
-echo '      sequence reads from the 16S ribosomal RNA gene.'
-echo ''
-echo 'David A. W. Soergel (1) and Rob Knight (2)'
-echo ''
-echo '1 Department of Plant and Microbial Biology,'
-echo '  University of California, Berkeley '
-echo '2 Howard Hughes Medical Institute and Department of Chemistry '
-echo '  and Biochemistry, University of Colorado at Boulder'
-echo '* Corresponding author (current address): soergel@cs.umass.edu'
-echo ''
-echo 'Version 0.9  (September 19, 2011)'
-echo ''
-echo 'http://dev.davidsoergel.com/rtax'
-echo ''
+function echoerr() { echo "$@" 1>&2; }
+
+echoerr
+echoerr 'RTAX: Rapid and accurate taxonomic classification of short paired-end'
+echoerr '      sequence reads from the 16S ribosomal RNA gene.'
+echoerr ''
+echoerr 'David A. W. Soergel (1) and Rob Knight (2)'
+echoerr ''
+echoerr '1 Department of Plant and Microbial Biology,'
+echoerr '  University of California, Berkeley '
+echoerr '2 Howard Hughes Medical Institute and Department of Chemistry '
+echoerr '  and Biochemistry, University of Colorado at Boulder'
+echoerr '* Corresponding author (current address): soergel@cs.umass.edu'
+echoerr ''
+echoerr 'Version 0.9  (September 19, 2011)'
+echoerr ''
+echoerr 'http://dev.davidsoergel.com/rtax'
+echoerr ''
 
 
 
@@ -29,29 +31,92 @@ pth=$(2>/dev/null cd "${arg%/*}" >&2; echo "`pwd -P`/${arg##*/}")
 par=$(dirname "$pth")
 scripts="$par/scripts"
 
-if [[ ( $# -ne 3 ) && ( $# -ne 4 ) ]]
-then
-  echo "Usage: `basename $0` reference.fasta reference.taxonomy queryA.fasta [queryB.fasta] > classifications.out"
-  exit 1
-fi
-
 # Grab the command-line arguments
 
-refdb=$1
-taxonomy=$2
-queryA=$3
-queryB=$4
+usageHelp="Usage: ${0##*/} -r <refdb> -t <taxonomy> -a <queryA> -b <queryB> -d <delimiter> -o <classifications.out>"
+refdbHelp="-r a reference database in FASTA format"
+taxonomyHelp="-t a taxonomy file with sequence IDs matching the reference database"
+queryAHelp="-a a FASTA file containing query sequences (single-ended or read 1)"
+queryBHelp="-b a FASTA file containing query sequences (read b, with matching IDs)"
+delimiterHelp="-d A delimiter separating the two reads when provided in a single file"
+outputHelp="-o the output path"
+badOptionHelp="Option not recognised"
+printHelpAndExit()
+{
+	echoerr "$usageHelp"
+	echoerr "$refdbHelp"
+	echoerr "$taxonomyHelp"
+	echoerr "$queryAHelp"
+	echoerr "$queryBHelp"
+	echoerr "$delimiterHelp"
+	echoerr "$outputHelp"
+	exit $1
+}
+printErrorHelpAndExit()
+{
+        echoerr "-------------------------------------------------------------"
+        echoerr "ERROR : $@"
+        echoerr "-------------------------------------------------------------"
+        echoerr
+        printHelpAndExit 1
+}
+
+refdb=""
+taxonomy=""
+queryA=""
+queryB=""
+delimiter=""
+verbose=""
+outpath=""
+
+while getopts "hr:t:a:b:d:v" optionName; do
+case "$optionName" in
+h) printHelpAndExit 0;;
+r) refdb="$OPTARG";;
+t) taxonomy="$OPTARG";;
+a) queryA="$OPTARG";;
+b) queryB="$OPTARG";;
+d) delimiter="$OPTARG";;
+o) outpath="$OPTARG";;
+v) verbose="0";;
+[?]) printErrorHelpAndExit "$badOptionHelp";;
+esac
+done
+
+
+
+if [[ -n "$verbose" ]]
+then 
+echoerr
+echoerr Reference database : $refdb
+echoerr Taxonomy file      : $taxonomy
+echoerr Query read A       : $queryA
+echoerr Query read B       : $queryB
+echoerr Read delimiter : $delimiter
+echoerr Output path : $outpath
+echoerr
+fi
+
+
+
+if [[ -z "$refdb" || -z "$taxonomy" || -z "$queryA" || -z "$outpath" ]]; then
+    printErrorHelpAndExit "-r, -t, -a, and -o options are required"
+fi
+
+if [[ -n "$queryB" && -n "$delimiter" ]]; then
+    printErrorHelpAndExit "Paired ends can be input using -b or -d, but not both"
+fi
 
 # find USEARCH, or hardcode if needed (could use an environment variable...)
 # usearch=/path/to/usearch
 usearch=`which usearch`
 if [[ ($# -eq 0) ]]
 then
-    echo "usearch not found in path.  Please correct, or just hardcode the path in the rtax script."
+    echoerr "usearch not found in path.  Please correct, or just hardcode the path in the rtax script."
     exit 1
 fi
-echo using usearch: $usearch
-echo
+echoerr using usearch: $usearch
+echoerr
 
 # create a temporary working directory
 
@@ -62,17 +127,22 @@ cd $tempdir
 
 # perform the search
 
-if [ $queryB ]; then
+
+if [ $delimiter ]; then
+    $scripts/splitDelimitedFasta.pl $delimiter $queryA
+    $scripts/rtaxSearchPair.pl --database $refdb --queryA $queryA.a --queryB $queryA.b --usearch $usearch > rawhits
+else if [ $queryB ]; then
     $scripts/rtaxSearchPair.pl --database $refdb --queryA $queryA --queryB $queryB --usearch $usearch > rawhits
 else
     $scripts/rtaxSearchSingle.pl --database $refdb --queryA $queryA  --usearch $usearch > rawhits
+fi
 fi
 
 
 # choose the "best" taxonomy assignment by walking down the tree, including info on how many ref sequences agree at each level
 # and pipe directly into the cleanup scripts instead of using temp files
 
-$scripts/rtaxVote.pl $taxonomy rawhits | $scripts/classificationQualityFilter.pl 1 0.0 0.5 | $scripts/classificationQualityStripper.pl
+$scripts/rtaxVote.pl $taxonomy rawhits | $scripts/classificationQualityFilter.pl 1 0.0 0.5 | $scripts/classificationQualityStripper.pl > $outpath
 
 # The output of this process includes the pcid-width column and a tab-delimited tax string
 
