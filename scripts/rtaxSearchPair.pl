@@ -520,7 +520,10 @@ sub main {
     #print STDERR "idsA = " . (join " ", @idsA) . "\n";
     #print STDERR "idsB = " . (join " ", @idsB) . "\n";
 
-    foreach my $element ( @idsA, @idsB ) { $count{$element}++; }
+    foreach my $element ( @idsA, @idsB ) {
+        assert (($element =~ / /) == 0);  # $indexA->db() should return parsed IDs
+        $count{$element}++;
+        }
     foreach my $element ( keys %count ) {
         if ( !( $element =~ /^__/ ) ) {
             push @union, $element;
