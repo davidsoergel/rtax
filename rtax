@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 function echoerr() { echo "$@" 1>&2; }
 
@@ -69,7 +69,7 @@ delimiter=""
 verbose=""
 outpath=""
 
-while getopts "hr:t:a:b:d:v" optionName; do
+while getopts "hr:t:a:b:d:o:v" optionName; do
 case "$optionName" in
 h) printHelpAndExit 0;;
 r) refdb="$OPTARG";;
