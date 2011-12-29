@@ -330,7 +330,7 @@ sub doPairSearch {
     my $singlePercentDifferenceThreshold = $pairPercentDifferenceThreshold * 2;
     my $singlePercentIdThreshold         = 1. - $singlePercentDifferenceThreshold;
 
-    print STDERR "$numQuerySequences query sequences remaining; searching with pair %id "
+    print STDERR "doPairSearch $readAFile, $readBFile: $numQuerySequences query sequences remaining\n     searching with pair %id "
         . $pairPercentDifferenceThreshold
         . " and maxAccepts "
         . $maxAccepts . "\n";
@@ -443,7 +443,7 @@ sub doPairSearch {
     if ( scalar(@$tooManyHitQueryIds) && ( $maxAccepts * 2 <= $maxMaxAccepts ) ) {
         my $nohitQueryIdsB;
 
-        print STDERR "Escalating maxAccepts to " . ( $maxAccepts * 2 ) . " for " . scalar(@$tooManyHitQueryIds) . " sequences.\n";
+        print STDERR "doPairSearch $readAFile, $readBFile: Escalating maxAccepts to " . ( $maxAccepts * 2 ) . " for " . scalar(@$tooManyHitQueryIds) . " sequences.\n";
 
         # prepare input files with the remaining sequences
         $readAFile = extractFasta( $indexA, $tooManyHitQueryIds );
@@ -463,9 +463,9 @@ sub doPairSearch {
         #  }
     }
 
-    print STDERR "Finished doPairSearch at pair threshold $pairPercentDifferenceThreshold and maxAccepts $maxAccepts\n";
-    print STDERR "NOHITS: " .      ( join ", ", @$nohitQueryIds ) . "\n";
-    print STDERR "TOOMANYHITS: " . ( join ", ", @$tooManyHitQueryIds ) . "\n";
+    print STDERR "doPairSearch $readAFile, $readBFile: Finished at pair threshold $pairPercentDifferenceThreshold and maxAccepts $maxAccepts\n";
+    print STDERR "         NOHITS: " .      ( join ", ", @$nohitQueryIds ) . "\n";
+    print STDERR "    TOOMANYHITS: " . ( join ", ", @$tooManyHitQueryIds ) . "\n";
 
     # any tooManyHitQueryIds that remain had more than maxMaxAccepts hits
     return ( $nohitQueryIds, $tooManyHitQueryIds );
@@ -486,11 +486,11 @@ sub extractFasta {
     for my $id (@$ids) {
         my $seqobj = $index->fetch($id);
         if ( !defined $seqobj ) {
-            print STDERR "Undefined: $id\n";
+            print STDERR "Extracting from " . $index->filename() . ": Undefined: $id\n";
         }
         elsif ($seqobj->primary_id() ne $id)
             {
-            print STDERR "ID problem: " . ($seqobj->primary_id()) . " ne $id\n";
+            print STDERR "Extracting from " . $index->filename() . ": ID problem: " . ($seqobj->primary_id()) . " ne $id\n";
             }
         else {
             $out->write_seq($seqobj);
@@ -547,6 +547,7 @@ sub main {
     foreach my $element (@difference)
     {
         print "$element\t\tNOPRIMER\n";
+        print STDERR "$element\t\tNOPRIMER\n";
     }
 
     print STDERR "intersection = " . ( join " ", @intersection ) . "\n";
@@ -579,7 +580,7 @@ sub main {
         ( $nohitQueryIds, $tooManyHitQueryIdsThisRound ) =
             doPairSearch( $numRemaining, $readAFile, $readBFile, $pairPercentDifferenceThreshold, $minMaxAccepts );
 
-        print STDERR "Finished round at threshold $pairPercentDifferenceThreshold; "
+        print STDERR "MAIN: Finished round at threshold $pairPercentDifferenceThreshold; "
             . scalar(@$nohitQueryIds)
             . " NOHIT, "
             . scalar(@$tooManyHitQueryIdsThisRound)
@@ -588,14 +589,16 @@ sub main {
         push @$tooManyHitQueryIds, @$tooManyHitQueryIdsThisRound;
     }
 
-    print STDERR scalar(@$nohitQueryIds) . " query sequences remaining with NOHIT\n";
+    print STDERR "MAIN: " . scalar(@$nohitQueryIds) . " query sequences remaining with NOHIT\n";
     for my $queryLabel (@$nohitQueryIds) {
         print "$queryLabel\t\tNOHIT\n";
+        print STDERR "$queryLabel\t\tNOHIT\n";
     }
 
-    print STDERR scalar(@$tooManyHitQueryIds) . " query sequences remaining with TOOMANYHITS\n";
+    print STDERR "MAIN: " . scalar(@$tooManyHitQueryIds) . " query sequences remaining with TOOMANYHITS\n";
     for my $queryLabel (@$tooManyHitQueryIds) {
         print "$queryLabel\t\tTOOMANYHITS\n";
+        print STDERR "$queryLabel\t\tTOOMANYHITS\n";
     }
 
 }
