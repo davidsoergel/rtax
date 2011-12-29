@@ -462,7 +462,7 @@ sub doPairSearch {
         #  }
     }
 
-    print STDERR "Finished doPairSearch at  pair threshold $pairPercentDifferenceThreshold and maxAccepts $maxAccepts\n";
+    print STDERR "Finished doPairSearch at pair threshold $pairPercentDifferenceThreshold and maxAccepts $maxAccepts\n";
     print STDERR "NOHITS: " .      ( join ", ", @$nohitQueryIds ) . "\n";
     print STDERR "TOOMANYHITS: " . ( join ", ", @$tooManyHitQueryIds ) . "\n";
 

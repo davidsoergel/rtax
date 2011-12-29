@@ -7,16 +7,22 @@ use warnings;
 my $delimiter = $ARGV[0];
 my $infileA = $ARGV[1];
 my $infileB = $ARGV[2];
+my $rc2 = $ARGV[3];
 
 open(INA, $infileA) or die "Can't read $infileA\n";
 open(INB, $infileB) or die "Can't read $infileB\n";
 
 my $fastaHeader = "";
+
+sub revcompl {
+    return ((my $rev = reverse $_) =~ tr/ACGTacgt/TGCAtgca/); 
+}
 	
 while(<INA>)
 	{
 	chomp $a;
 	my $b = <INB>;
+	if($rc2) { $b = revcompl($b); }
 	
 	print $a . $delimiter . $b . "\n";
 
