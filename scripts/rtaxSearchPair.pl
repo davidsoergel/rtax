@@ -201,6 +201,7 @@ sub printLine {
 
     my $idString = ( join "\t", @ids );
     print "$label\t$bestPcid\t" . $idString . "\n";
+    print STDERR "$label\t$bestPcid\t" . $idString . "\n";
 }
 
 sub collectIds {
@@ -489,7 +490,7 @@ sub extractFasta {
         }
         elsif ($seqobj->primary_id() ne $id)
             {
-            print STDERR "ID problem: " . $seqobj->primary_id() . " ne $id\n";
+            print STDERR "ID problem: " . ($seqobj->primary_id()) . " ne $id\n";
             }
         else {
             $out->write_seq($seqobj);
@@ -548,7 +549,7 @@ sub main {
         print "$element\t\tNOPRIMER\n";
     }
 
-    #print STDERR "intersection = " . ( join " ", @intersection ) . "\n";
+    print STDERR "intersection = " . ( join " ", @intersection ) . "\n";
 
     my $readAFile = extractFasta( $indexA, \@intersection );
     my $readBFile = extractFasta( $indexB, \@intersection );
