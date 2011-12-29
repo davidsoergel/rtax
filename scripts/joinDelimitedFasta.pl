@@ -14,16 +14,21 @@ open(INB, $infileB) or die "Can't read $infileB\n";
 
 my $fastaHeader = "";
 
-sub revcompl {
-    return ((my $rev = reverse $_) =~ tr/ACGTacgt/TGCAtgca/); 
-}
+#sub revcompl {
+#    return ((my $rev = reverse $_) =~ tr/ACGTacgt/TGCAtgca/); 
+#}
 	
 while(<INA>)
 	{
 	my $a = $_;
 	chomp $a;
 	my $b = <INB>;
-	if($rc2) { $b = revcompl($b); }
+	if($rc2)
+	    {
+	    # $b = revcompl($b);
+	    $b = reverse $b;
+	    $b =~ tr/ACGTacgt/TGCAtgca/;
+	    }
 	
 	print $a . $delimiter . $b . "\n";
 
