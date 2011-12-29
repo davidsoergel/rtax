@@ -20,6 +20,7 @@ sub revcompl {
 	
 while(<INA>)
 	{
+	my $a = $_;
 	chomp $a;
 	my $b = <INB>;
 	if($rc2) { $b = revcompl($b); }
