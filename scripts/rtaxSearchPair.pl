@@ -446,11 +446,11 @@ sub doPairSearch {
         print STDERR "doPairSearch $readAFile, $readBFile: Escalating maxAccepts to " . ( $maxAccepts * 2 ) . " for " . scalar(@$tooManyHitQueryIds) . " sequences.\n";
 
         # prepare input files with the remaining sequences
-        $readAFile = extractFasta( $indexA, $tooManyHitQueryIds );
-        $readBFile = extractFasta( $indexB, $tooManyHitQueryIds );
+        my $readAFileEsc = extractFasta( $indexA, $tooManyHitQueryIds );
+        my $readBFileEsc = extractFasta( $indexB, $tooManyHitQueryIds );
 
         ( $nohitQueryIdsB, $tooManyHitQueryIds ) =
-            doPairSearch( scalar(@$tooManyHitQueryIds), $readAFile, $readBFile, $pairPercentDifferenceThreshold, $maxAccepts * 2 );
+            doPairSearch( scalar(@$tooManyHitQueryIds), $readAFileEsc, $readBFileEsc, $pairPercentDifferenceThreshold, $maxAccepts * 2 );
 
         # A TOOMANYHITS case can certainly turn into a NOHITS case:
         # once one read is no longer TOOMANYHITS, it may turn out that nothing can be reconciled with the other read.
