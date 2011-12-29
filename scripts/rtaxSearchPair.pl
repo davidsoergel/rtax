@@ -487,7 +487,7 @@ sub extractFasta {
         if ( !defined $seqobj ) {
             print STDERR "Undefined: $id\n";
         }
-        else if ($seqobj->primary_id() ne $id)
+        elsif ($seqobj->primary_id() ne $id)
             {
             print STDERR "ID problem: " . $seqobj->primary_id() . " ne $id\n";
             }
