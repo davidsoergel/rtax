@@ -201,7 +201,7 @@ sub printLine {
 
     my $idString = ( join "\t", @ids );
     print "$label\t$bestPcid\t" . $idString . "\n";
-    print STDERR "$label\t$bestPcid\t" . $idString . "\n";
+    # print STDERR "$label\t$bestPcid\t" . $idString . "\n";
 }
 
 sub collectIds {
@@ -466,8 +466,10 @@ sub doPairSearch {
     }
 
     print STDERR "doPairSearch $readAFile, $readBFile: Finished at pair threshold $pairPercentDifferenceThreshold and maxAccepts $maxAccepts\n";
-    print STDERR "         NOHITS: " .      ( join ", ", @$nohitQueryIds ) . "\n";
-    print STDERR "    TOOMANYHITS: " . ( join ", ", @$tooManyHitQueryIds ) . "\n";
+    print STDERR "         NOHITS: " . scalar(@$nohitQueryIds ) . "\n";
+    print STDERR "    TOOMANYHITS: " . scalar(@$tooManyHitQueryIds ) . "\n";
+    # print STDERR "         NOHITS: " .      ( join ", ", @$nohitQueryIds ) . "\n";
+    # print STDERR "    TOOMANYHITS: " . ( join ", ", @$tooManyHitQueryIds ) . "\n";
 
     # any tooManyHitQueryIds that remain had more than maxMaxAccepts hits
     return ( $nohitQueryIds, $tooManyHitQueryIds );
