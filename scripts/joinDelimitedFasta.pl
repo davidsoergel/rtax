@@ -21,8 +21,9 @@ my $fastaHeader = "";
 while(<INA>)
 	{
 	my $a = $_;
-	chomp $a;
 	my $b = <INB>;
+	chomp $a;
+	chomp $b;
 	if($rc2)
 	    {
 	    # $b = revcompl($b);
