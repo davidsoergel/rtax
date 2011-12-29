@@ -461,6 +461,8 @@ sub doPairSearch {
         #            . " at pair threshold $pairPercentDifferenceThreshold and maxAccepts "
         #            . ( $maxAccepts * 2 ) );
         #  }
+        
+        push @$nohitQueryIds, @$nohitQueryIdsB;
     }
 
     print STDERR "doPairSearch $readAFile, $readBFile: Finished at pair threshold $pairPercentDifferenceThreshold and maxAccepts $maxAccepts\n";
