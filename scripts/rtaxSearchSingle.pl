@@ -48,8 +48,12 @@
 
 use strict;
 use warnings;
-use Bio::Index::Fasta;
+#use Bio::Index::Fasta;
 use Getopt::Long;
+
+use FindBin;
+use lib "$FindBin::Bin";
+use FastaIndex;
 
 use vars qw (
     $usearch
@@ -412,7 +416,8 @@ sub main {
     my $singlePercentDifferenceThreshold = 0.005;    # this gets doubled to 1% before being used the first time
 
     # these are redundant between multiple runs, oh well
-    $indexA = Bio::Index::Fasta->new( '-filename' => "A.idx", '-write_flag' => 1 );
+    #$indexA = Bio::Index::Fasta->new( '-filename' => "A.idx", '-write_flag' => 1 );
+    $indexA = FastaIndex->new();
     $indexA->make_index($readAFileAll);
 
     my $readAFile = $readAFileAll;

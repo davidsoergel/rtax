@@ -13,7 +13,7 @@
 #
 # http://www.davidsoergel.com/rtax
 #
-# Version 0.9  (September 7, 2011)
+# Version 0.93  (December 31, 2011)
 #
 # For usage instructions: just run the script with no arguments
 #
@@ -48,8 +48,12 @@
 
 use strict;
 use warnings;
-use Bio::Index::Fasta;
 use Getopt::Long;
+
+
+use FindBin;
+use lib "$FindBin::Bin";
+use FastaIndex;
 
 use vars qw (
     $usearch
@@ -486,18 +490,19 @@ sub extractFasta {
 
     open( OUT, ">$name" );
 
-    my $out = Bio::SeqIO->new( '-format' => 'Fasta', '-fh' => \*OUT );
+    # my $out = Bio::SeqIO->new( '-format' => 'Fasta', '-fh' => \*OUT );
     for my $id (@$ids) {
         my $seqobj = $index->fetch($id);
         if ( !defined $seqobj ) {
-            print STDERR "Extracting from " . $index->filename() . ": Undefined: $id\n";
+            print STDERR "Extracting from " . $index->fastaFileName() . ": Undefined: $id\n";
         }
-        elsif ($seqobj->primary_id() ne $id)
-            {
-            print STDERR "Extracting from " . $index->filename() . ": ID problem: " . ($seqobj->primary_id()) . " ne $id\n";
-            }
+       # elsif ($seqobj->primary_id() ne $id)
+        #    {
+        #    print STDERR "Extracting from " . $index->filename() . ": ID problem: " . ($seqobj->primary_id()) . " ne $id\n";
+        #    }
         else {
-            $out->write_seq($seqobj);
+            #$out->write_seq($seqobj);
+            print OUT $seqobj;
         }
     }
     close OUT;
@@ -516,10 +521,10 @@ sub main {
     my $pairPercentDifferenceThreshold = 0.005;    # this gets doubled to 1% before being used the first time
 
     # these are redundant between multiple runs, oh well
-    $indexA = Bio::Index::Fasta->new( '-filename' => "A.idx", '-write_flag' => 1 );
+    $indexA = FastaIndex->new(); # '-filename' => "A.idx", '-write_flag' => 1 );
     $indexA->make_index($readAFileAll);
 
-    $indexB = Bio::Index::Fasta->new( '-filename' => "B.idx", '-write_flag' => 1 );
+    $indexB = FastaIndex->new(); # '-filename' => "B.idx", '-write_flag' => 1 );
     $indexB->make_index($readBFileAll);
 
     my @union        = ();
