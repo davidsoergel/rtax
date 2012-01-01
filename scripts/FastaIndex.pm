@@ -3,6 +3,8 @@ package FastaIndex;
 use strict;
 use warnings;
 
+use IO::File;
+
 
 BEGIN {
 for my $field (qw( fastaFileName db fh ))
@@ -44,9 +46,10 @@ sub make_index {
 	my $id = "";
 	my $numlines = 0;
 	
-	open(IN, "$fastaFileName") or die "could not open $fastaFileName";
-	$this->fh(*IN);
-	while(<IN>)
+	#open(IN, "$fastaFileName") or die "could not open $fastaFileName";
+	my $in = IO::File->new("$fastaFileName") or die "could not open $fastaFileName";
+	$this->fh($in);
+	while(<$in>)
 	    {
 	    my $line = $_;
 	    if($line =~ /^>(\S*)/)
@@ -82,6 +85,7 @@ sub fetch {
     
     my $result = "";
     my $in = $this->fh();
+    #print $this->fastaFileName() . ": " . $in . "\n";
     seek($in,$pos,0);
     for (1..$numlines) { $result .= <$in> }
     return $result;
