@@ -13,7 +13,7 @@
 #
 # http://www.davidsoergel.com/rtax
 #
-# Version 0.93  (December 31, 2011)
+# Version 0.93  (January 1, 2012)
 #
 # For usage instructions: just run the script with no arguments
 #
@@ -49,7 +49,6 @@
 use strict;
 use warnings;
 use Getopt::Long;
-
 
 use FindBin;
 use lib "$FindBin::Bin";

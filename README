@@ -1,7 +1,7 @@
 RTAX: Rapid and accurate taxonomic classification of short paired-end
       sequence reads from the 16S ribosomal RNA gene.
 
-David A. W. Soergel (1) and Rob Knight (2)
+David A. W. Soergel (1), Rob Knight (2), and Steven E. Brenner (1)
 
 1 Department of Plant and Microbial Biology,
   University of California, Berkeley 
@@ -9,7 +9,7 @@ David A. W. Soergel (1) and Rob Knight (2)
   and Biochemistry, University of Colorado at Boulder
 * Corresponding author (current address): soergel@cs.umass.edu
 
-Version 0.92  (December 28, 2011)
+Version 0.93  (January 1, 2012)
 
 http://dev.davidsoergel.com/rtax
 

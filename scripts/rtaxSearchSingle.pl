@@ -13,7 +13,7 @@
 #
 # http://www.davidsoergel.com/rtax
 #
-# Version 0.9  (September 7, 2011)
+# Version 0.93  (January 1, 2012)
 #
 # For usage instructions: just run the script with no arguments
 #
@@ -48,7 +48,6 @@
 
 use strict;
 use warnings;
-#use Bio::Index::Fasta;
 use Getopt::Long;
 
 use FindBin;
