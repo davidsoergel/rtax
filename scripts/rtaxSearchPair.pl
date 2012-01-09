@@ -13,7 +13,7 @@
 #
 # http://www.davidsoergel.com/rtax
 #
-# Version 0.93  (January 1, 2012)
+# Version 0.9301  (January 5, 2012)
 #
 # For usage instructions: just run the script with no arguments
 #
@@ -49,6 +49,7 @@
 use strict;
 use warnings;
 use Getopt::Long;
+use File::Temp;
 
 use FindBin;
 use lib "$FindBin::Bin";
@@ -80,9 +81,10 @@ sub init {
         "queryB=s"                            => \$readBFileAll
     );
 
-    if ( !defined $databaseFile || 
-        !defined $readAFileAll || 
-        !defined $readBFileAll ) {
+    if (   !defined $databaseFile
+        || !defined $readAFileAll
+        || !defined $readBFileAll )
+    {
         print STDERR "Missing required argument!\n\n";
         usage();
     }
@@ -90,17 +92,18 @@ sub init {
     if ( !defined $usearch ) {
         $usearch = `whereis usearch`;
         chomp $usearch;
-        if ( !defined $usearch || $usearch eq "" ) { 
-            print STDERR "Could not find usearch.\n\n"; usage(); 
-            }
+        if ( !defined $usearch || $usearch eq "" ) {
+            print STDERR "Could not find usearch.\n\n";
+            usage();
         }
+    }
 
     if ( !defined $slop )          { $slop          = 0.005; }
     if ( !defined $minMaxAccepts ) { $minMaxAccepts = 1000; }
     if ( !defined $maxMaxAccepts ) { $maxMaxAccepts = 16000; }
     if ( !defined $maxPairPercentDifferenceThreshold ) {
         $maxPairPercentDifferenceThreshold = 0.2;
-        }
+    }
 }
 
 sub usage {
@@ -204,6 +207,7 @@ sub printLine {
 
     my $idString = ( join "\t", @ids );
     print "$label\t$bestPcid\t" . $idString . "\n";
+
     # print STDERR "$label\t$bestPcid\t" . $idString . "\n";
 }
 
@@ -222,8 +226,8 @@ sub collectIds {
     my ( $typeF, $clusterF, $sizeF, $percentIdF, $strandF, $queryStartF, $targetStartF, $alignmentF, $queryLabelF, $targetLabelF ) =
         split /\t/, $firstLine;
     chomp $targetLabelF;
-    $queryLabelF =~ s/\s.*//;  # primary ID is only the portion before whitespace
-    
+    $queryLabelF =~ s/\s.*//;    # primary ID is only the portion before whitespace
+
     if ( $typeF eq "N" ) {
 
         #print STDERR "$queryLabelF -> N\n";
@@ -256,7 +260,7 @@ sub collectIds {
         my ( $type, $cluster, $size, $percentId, $strand, $queryStart, $targetStart, $alignment, $queryLabel, $targetLabel ) =
             split /\t/;
         chomp $targetLabel;
-        $queryLabel =~ s/\s.*//;  # primary ID is only the portion before whitespace
+        $queryLabel =~ s/\s.*//;    # primary ID is only the portion before whitespace
 
         if ( $queryLabel ne $queryLabelF ) {
 
@@ -341,20 +345,40 @@ sub doPairSearch {
     my $nohitQueryIds      = [];
     my $tooManyHitQueryIds = [];
 
-    # open the USEARCH streams
-    print STDERR
-"$usearch --quiet --iddef 2 --query $readAFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject\n";
+# open the USEARCH streams
+#    print STDERR
+#"$usearch --quiet --iddef 2 --query $readAFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject\n";
 
-    open( UCA,
-"$usearch --quiet --iddef 2 --query $readAFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject |"
-    ) || die "can't fork usearch: $!";
+#    open( UCA,
+#"$usearch --quiet --iddef 2 --query $readAFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject |"
+#    ) || die "can't fork usearch: $!";
 
-    print STDERR
-"$usearch --quiet --iddef 2 --query $readBFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject\n";
+#    print STDERR
+#"$usearch --quiet --iddef 2 --query $readBFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject\n";
 
-    open( UCB,
-"$usearch --quiet --iddef 2 --query $readBFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject |"
-    ) || die "can't fork usearch: $!";
+#    open( UCB,
+#"$usearch --quiet --iddef 2 --query $readBFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject |"
+#    ) || die "can't fork usearch: $!";
+
+    my $dir = File::Temp->newdir();
+    if ( system( 'mknod', "$dir/a", 'p' ) && system( 'mkfifo', "$dir/a" ) ) { die "mk{nod,fifo} $dir/a failed"; }
+    if ( system( 'mknod', "$dir/b", 'p' ) && system( 'mkfifo', "$dir/b" ) ) { die "mk{nod,fifo} $dir/b failed"; }
+    if ( !fork() ) {
+        my $cmd =
+"$usearch --quiet --iddef 2 --query $readAFile --db $databaseFile --uc $dir/a --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject";
+        print STDERR $cmd;
+        exec $cmd || die "can't fork usearch: $!";
+    }
+
+    if ( !fork() ) {
+        my $cmd =
+"$usearch --quiet --iddef 2 --query $readBFile --db $databaseFile --uc $dir/b --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject";
+        print STDERR $cmd;
+        exec $cmd || die "can't fork usearch: $!";
+    }
+
+    open( UCA, "$dir/a" );
+    open( UCB, "$dir/b" );
 
     # Load the first non-comment line from each stream
     my $nextLineA;
@@ -446,7 +470,10 @@ sub doPairSearch {
     if ( scalar(@$tooManyHitQueryIds) && ( $maxAccepts * 2 <= $maxMaxAccepts ) ) {
         my $nohitQueryIdsB;
 
-        print STDERR "doPairSearch $readAFile, $readBFile: Escalating maxAccepts to " . ( $maxAccepts * 2 ) . " for " . scalar(@$tooManyHitQueryIds) . " sequences.\n";
+        print STDERR "doPairSearch $readAFile, $readBFile: Escalating maxAccepts to "
+            . ( $maxAccepts * 2 ) . " for "
+            . scalar(@$tooManyHitQueryIds)
+            . " sequences.\n";
 
         # prepare input files with the remaining sequences
         my $readAFileEsc = extractFasta( $indexA, $tooManyHitQueryIds );
@@ -464,13 +491,15 @@ sub doPairSearch {
         #            . " at pair threshold $pairPercentDifferenceThreshold and maxAccepts "
         #            . ( $maxAccepts * 2 ) );
         #  }
-        
+
         push @$nohitQueryIds, @$nohitQueryIdsB;
     }
 
-    print STDERR "doPairSearch $readAFile, $readBFile: Finished at pair threshold $pairPercentDifferenceThreshold and maxAccepts $maxAccepts\n";
-    print STDERR "         NOHITS: " . scalar(@$nohitQueryIds ) . "\n";
-    print STDERR "    TOOMANYHITS: " . scalar(@$tooManyHitQueryIds ) . "\n";
+    print STDERR
+        "doPairSearch $readAFile, $readBFile: Finished at pair threshold $pairPercentDifferenceThreshold and maxAccepts $maxAccepts\n";
+    print STDERR "         NOHITS: " . scalar(@$nohitQueryIds) . "\n";
+    print STDERR "    TOOMANYHITS: " . scalar(@$tooManyHitQueryIds) . "\n";
+
     # print STDERR "         NOHITS: " .      ( join ", ", @$nohitQueryIds ) . "\n";
     # print STDERR "    TOOMANYHITS: " . ( join ", ", @$tooManyHitQueryIds ) . "\n";
 
@@ -495,11 +524,13 @@ sub extractFasta {
         if ( !defined $seqobj ) {
             print STDERR "Extracting from " . $index->fastaFileName() . ": Undefined: $id\n";
         }
-       # elsif ($seqobj->primary_id() ne $id)
+
+        # elsif ($seqobj->primary_id() ne $id)
         #    {
         #    print STDERR "Extracting from " . $index->filename() . ": ID problem: " . ($seqobj->primary_id()) . " ne $id\n";
         #    }
         else {
+
             #$out->write_seq($seqobj);
             print OUT $seqobj;
         }
@@ -510,7 +541,7 @@ sub extractFasta {
 }
 
 sub main {
-    
+
     init();
 
     my $nohitQueryIds = [];
@@ -520,10 +551,10 @@ sub main {
     my $pairPercentDifferenceThreshold = 0.005;    # this gets doubled to 1% before being used the first time
 
     # these are redundant between multiple runs, oh well
-    $indexA = FastaIndex->new(); # '-filename' => "A.idx", '-write_flag' => 1 );
+    $indexA = FastaIndex->new();                   # '-filename' => "A.idx", '-write_flag' => 1 );
     $indexA->make_index($readAFileAll);
 
-    $indexB = FastaIndex->new(); # '-filename' => "B.idx", '-write_flag' => 1 );
+    $indexB = FastaIndex->new();                   # '-filename' => "B.idx", '-write_flag' => 1 );
     $indexB->make_index($readBFileAll);
 
     my @union        = ();
@@ -537,30 +568,28 @@ sub main {
     #print STDERR "idsB = " . (join " ", @idsB) . "\n";
 
     foreach my $element ( @idsA, @idsB ) {
-        if (($element =~ /[\t ]/) > 0)  # $indexA->db() should return parsed IDs
-            {            
+        if ( ( $element =~ /[\t ]/ ) > 0 )    # $indexA->db() should return parsed IDs
+        {
             print STDERR "Invalid FASTA id: $element\n";
-            exit(1)
-            }
-        $count{$element}++;
+            exit(1);
         }
+        $count{$element}++;
+    }
     foreach my $element ( keys %count ) {
         if ( !( $element =~ /^__/ ) ) {
             push @union, $element;
             push @{ $count{$element} > 1 ? \@intersection : \@difference }, $element;
         }
     }
-    
+
     # sequence ids mentioned in one of the two files, but not both
-    foreach my $element (@difference)
-    {
+    foreach my $element (@difference) {
         print "$element\t\tNOPRIMER\n";
         print STDERR "$element\t\tNOPRIMER\n";
     }
 
     #print STDERR "intersection = " . ( join " ", @intersection ) . "\n";
-    print STDERR "intersection = " . scalar(@intersection ) . " sequences\n";
-
+    print STDERR "intersection = " . scalar(@intersection) . " sequences\n";
 
     my $readAFile = extractFasta( $indexA, \@intersection );
     my $readBFile = extractFasta( $indexB, \@intersection );
@@ -584,9 +613,9 @@ sub main {
         # that means that there are more than maxMaxAccepts hits for this threshold--
         # so there's really no point in testing this query again at an even lower threshold
         my $tooManyHitQueryIdsThisRound;
-        
-        my $numRemaining = ($nohitQueryIds->[0] eq "ALL") ? scalar(@intersection) : scalar(@$nohitQueryIds);
-        
+
+        my $numRemaining = ( $nohitQueryIds->[0] eq "ALL" ) ? scalar(@intersection) : scalar(@$nohitQueryIds);
+
         ( $nohitQueryIds, $tooManyHitQueryIdsThisRound ) =
             doPairSearch( $numRemaining, $readAFile, $readBFile, $pairPercentDifferenceThreshold, $minMaxAccepts );
 

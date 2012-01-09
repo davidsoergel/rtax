@@ -9,7 +9,7 @@ David A. W. Soergel (1), Rob Knight (2), and Steven E. Brenner (1)
   and Biochemistry, University of Colorado at Boulder
 * Corresponding author (current address): soergel@cs.umass.edu
 
-Version 0.93  (January 1, 2012)
+Version 0.9301  (January 5, 2012)
 
 http://dev.davidsoergel.com/rtax
 
@@ -19,13 +19,6 @@ Requirements
 
  * Hardware: memory requirements vary with the size of the reference database;
     for the version of GreenGenes we provide, ~4GB is needed.
-
- * BioPerl.  See http://www.bioperl.org/wiki/Installing_Bioperl_for_Unix,
-	particularly the "Easy install using CPAN" section.
-	(we use only Bio::Index::Fasta so the many optional BioPerl
-	dependencies are not needed).
-	
- * Getopt::Long ("sudo cpan Getopt::Long")
 
  * USEARCH (http://www.drive5.com/usearch/).  RTAX has been tested with
     v4.1.93 and v5.0.144.  Make sure that the program is in your search
@@ -76,14 +69,18 @@ Sequence classification is done as follows:
 Substitute a different reference database for the GreenGenes files if desired,
 of course.
 
-Note that the two query files must provide mate-paired reads with exactly
-matching identifiers (though they need not be in the same order). Any ids
-present in one file but not the other are silently dropped. Please contact us
-for help accomodating alternate naming schemes for the paired reads (e.g.,
-"SOMEID.a" paired with "SOMEID.b", and so forth).
+If two query files are provided, then they must contain mate-paired reads
+with exactly matching identifiers (though they need not be in the same order).
+Any ids present in one file but not the other are silently dropped. Please
+contact us for help accomodating alternate naming schemes for the paired reads
+(e.g., "SOMEID.a" paired with "SOMEID.b", and so forth).
 
 RTAX may be run for single-ended reads as well; simply exclude the queryB
 parameter in this case.
+
+Finally, RTAX will accept a single query file in which mate-paired reads are
+delimited by a special character such as a comma.  In this case the delimiter
+must be specified using the -d option.
 
 Various progress messages are provided on stderr, and the predicted
 classification for each query is provided on stdout. The output format is
@@ -96,9 +93,6 @@ These can be quite large; if more space is available in another location (e.g.,
 under /tmp), edit the "tempdir" variable in the rtax script appropriately. The
 temporary directory is deleted upon successful termination, but may need to be
 manually cleaned up in the event of an error of some sort.
-
-In addition, an index into the input FASTA file is written in the same directory
-as the file itself.
 
 
 Using the GreenGenes reference database

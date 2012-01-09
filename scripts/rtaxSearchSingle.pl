@@ -13,7 +13,7 @@
 #
 # http://www.davidsoergel.com/rtax
 #
-# Version 0.93  (January 1, 2012)
+# Version 0.9301  (January 5, 2012)
 #
 # For usage instructions: just run the script with no arguments
 #
@@ -209,6 +209,7 @@ sub collectIds {
     my ( $typeF, $clusterF, $sizeF, $percentIdF, $strandF, $queryStartF, $targetStartF, $alignmentF, $queryLabelF, $targetLabelF ) =
         split /\t/, $firstLine;
     chomp $targetLabelF;
+    $queryLabelF =~ s/\s.*//;  # primary ID is only the portion before whitespace
 
     if ( $typeF eq "N" ) {
 		#print STDERR "$queryLabelF -> N\n";
@@ -389,14 +390,15 @@ sub extractFasta {
 
     open( OUT, ">$name" );
 
-    my $out = Bio::SeqIO->new( '-format' => 'Fasta', '-fh' => \*OUT );
+    #my $out = Bio::SeqIO->new( '-format' => 'Fasta', '-fh' => \*OUT );
     for my $id (@$ids) {
         my $seqobj = $index->fetch($id);
         if ( !defined $seqobj ) {
             print STDERR "Undefined: $id\n";
         }
         else {
-            $out->write_seq($seqobj);
+            #$out->write_seq($seqobj);
+            print OUT $seqobj;
         }
     }
     close OUT;

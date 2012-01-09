@@ -81,7 +81,9 @@ sub fetch {
     
 	my ($this, $id) = @_;
     
-    my ($pos, $numlines) = @{$this->db()->{$id}};
+    my $r = $this->db()->{$id};
+    if(! defined $r) { die "no sequence with id: $id"; }
+    my ($pos, $numlines) = @{$r};
     
     my $result = "";
     my $in = $this->fh();

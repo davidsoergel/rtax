@@ -14,7 +14,7 @@ echoerr '2 Howard Hughes Medical Institute and Department of Chemistry '
 echoerr '  and Biochemistry, University of Colorado at Boulder'
 echoerr '* Corresponding author (current address): soergel@cs.umass.edu'
 echoerr ''
-echoerr 'Version 0.93  (January 1, 2012)'
+echoerr 'Version 0.9301  (January 5, 2012)'
 echoerr ''
 echoerr 'http://dev.davidsoergel.com/rtax'
 echoerr ''
@@ -30,6 +30,23 @@ arg=$0; [[ -L $0 ]] && arg=$(stat -f '%Y' "$0")
 pth=$(2>/dev/null cd "${arg%/*}" >&2; echo "`pwd -P`/${arg##*/}")
 par=$(dirname "$pth")
 scripts="$par/scripts"
+
+abspath() {
+	if [[ -d "$1" ]]
+	then
+		pushd "$1" >/dev/null
+		pwd
+		popd >/dev/null
+	elif [[ -e $1 ]]
+	then
+		pushd $(dirname $1) >/dev/null
+		echo $(pwd)/$(basename $1)
+		popd >/dev/null
+	else
+		echo $1 does not exist! >&2
+		return 127
+	fi
+}
 
 # Grab the command-line arguments
 
@@ -72,12 +89,12 @@ outpath=""
 while getopts "hr:t:a:b:d:o:v" optionName; do
 case "$optionName" in
 h) printHelpAndExit 0;;
-r) refdb="$OPTARG";;
-t) taxonomy="$OPTARG";;
-a) queryA="$OPTARG";;
-b) queryB="$OPTARG";;
+r) refdb=(abspath "$OPTARG");;
+t) taxonomy=(abspath "$OPTARG");;
+a) queryA=(abspath "$OPTARG");;
+b) queryB=(abspath "$OPTARG");;
 d) delimiter="$OPTARG";;
-o) outpath="$OPTARG";;
+o) outpath=(abspath "$OPTARG");;
 v) verbose="0";;
 [?]) printErrorHelpAndExit "$badOptionHelp";;
 esac
