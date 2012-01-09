@@ -13,7 +13,7 @@
 #
 # http://www.davidsoergel.com/rtax
 #
-# Version 0.9301  (January 5, 2012)
+# Version 0.9302  (January 9, 2012)
 #
 # For usage instructions: just run the script with no arguments
 #
@@ -49,6 +49,7 @@
 use strict;
 use warnings;
 use Getopt::Long;
+use File::Temp;
 
 use FindBin;
 use lib "$FindBin::Bin";
@@ -311,12 +312,25 @@ sub doSearch {
     my $nohitQueryIds      = [];
     my $tooManyHitQueryIds = [];
 
-    print STDERR "$usearch --quiet --iddef 2 --query $readAFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject\n";
 
     # open the USEARCH streams
-    open( UCA,
-"$usearch --quiet --iddef 2 --query $readAFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject |"
-    ) || die "can't fork usearch: $!";
+  #  print STDERR "$usearch --quiet --iddef 2 --query $readAFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject\n";
+   # open( UCA,
+# "$usearch --quiet --iddef 2 --query $readAFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject |"
+#    ) || die "can't fork usearch: $!";
+
+
+    my $dir = File::Temp->newdir();
+    if ( system( 'mknod', "$dir/a", 'p' ) && system( 'mkfifo', "$dir/a" ) ) { die "mk{nod,fifo} $dir/a failed"; }
+    if ( !fork() ) {
+        my $cmd =
+"$usearch --quiet --iddef 2 --query $readAFile --db $databaseFile --uc $dir/a --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject";
+        print STDERR $cmd . "\n";
+        exec $cmd || die "can't fork usearch: $!";
+    }
+
+    open( UCA, "$dir/a" );
+
 
     # Load the first non-comment line from each stream
     my $nextLineA;

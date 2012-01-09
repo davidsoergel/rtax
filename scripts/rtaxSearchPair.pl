@@ -13,7 +13,7 @@
 #
 # http://www.davidsoergel.com/rtax
 #
-# Version 0.9301  (January 5, 2012)
+# Version 0.9302  (January 9, 2012)
 #
 # For usage instructions: just run the script with no arguments
 #
@@ -366,14 +366,14 @@ sub doPairSearch {
     if ( !fork() ) {
         my $cmd =
 "$usearch --quiet --iddef 2 --query $readAFile --db $databaseFile --uc $dir/a --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject";
-        print STDERR $cmd;
+        print STDERR $cmd . "\n";
         exec $cmd || die "can't fork usearch: $!";
     }
 
     if ( !fork() ) {
         my $cmd =
 "$usearch --quiet --iddef 2 --query $readBFile --db $databaseFile --uc $dir/b --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject";
-        print STDERR $cmd;
+        print STDERR $cmd . "\n";
         exec $cmd || die "can't fork usearch: $!";
     }
 
