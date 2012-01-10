@@ -533,7 +533,7 @@ sub extractFasta {
     my $ids   = shift;
     my $name  = $fastaNum++;
 
-    #print STDERR "Extracting " . scalar(@$ids) . " to file $name\n";
+    # print STDERR "Extracting " . scalar(@$ids) . " to file $name\n";
 
     open( OUT, ">$name" );
 
@@ -611,7 +611,8 @@ sub main {
 
     #print STDERR "intersection = " . ( join " ", @intersection ) . "\n";
     print STDERR "intersection = " . scalar(@intersection) . " sequences\n";
-    print STDERR join "\n", (@intersection);
+    # print STDERR (join "\n", (@intersection)) . "\n";
+    
 
     my $readAFile = extractFasta( $indexA, \@intersection );
     my $readBFile = extractFasta( $indexB, \@intersection );

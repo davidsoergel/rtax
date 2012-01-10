@@ -72,6 +72,9 @@ sub make_index {
 	    $pos += length($line);
 	    $numlines++;
         }
+    # write the final record
+	my @rec =  ($lastpos, $numlines);        
+	$this->db()->{$id} = \@rec;
     delete($this->db()->{""});  # spurious entries from the start of the loop
 }
 
