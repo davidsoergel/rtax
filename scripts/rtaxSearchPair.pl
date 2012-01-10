@@ -587,7 +587,7 @@ sub main {
     #print STDERR "idsB = " . (join " ", @idsB) . "\n";
 
     foreach my $element ( @idsA, @idsB ) {
-        if ( ( $element =~ /[\t ]/ ) > 0 )    # $indexA->db() should return parsed IDs
+        if ( ( $element =~ /[\t ]/ ) > 0 )    # $indexA->db() should return parsed IDs with no whitespace
         {
             print STDERR "Invalid FASTA id: $element\n";
             exit(1);
@@ -604,13 +604,14 @@ sub main {
     # this is where we could fall back to single-ended classification as needed
 
     # sequence ids mentioned in one of the two files, but not both
-    foreach my $element (@difference) {
-        print "$element\t\tNOPRIMER\n";
-        print STDERR "$element\t\tNOPRIMER\n";
-    }
+    #foreach my $element (@difference) {
+    #    print "$element\t\tNOPRIMER\n";
+    #    print STDERR "$element\t\tNOPRIMER\n";
+    #}
 
     #print STDERR "intersection = " . ( join " ", @intersection ) . "\n";
     print STDERR "intersection = " . scalar(@intersection) . " sequences\n";
+    print STDERR join "\n" (@intersection);
 
     my $readAFile = extractFasta( $indexA, \@intersection );
     my $readBFile = extractFasta( $indexB, \@intersection );
