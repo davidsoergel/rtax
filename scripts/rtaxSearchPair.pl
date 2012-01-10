@@ -611,7 +611,7 @@ sub main {
 
     #print STDERR "intersection = " . ( join " ", @intersection ) . "\n";
     print STDERR "intersection = " . scalar(@intersection) . " sequences\n";
-    print STDERR join "\n" (@intersection);
+    print STDERR join "\n", (@intersection);
 
     my $readAFile = extractFasta( $indexA, \@intersection );
     my $readBFile = extractFasta( $indexB, \@intersection );
