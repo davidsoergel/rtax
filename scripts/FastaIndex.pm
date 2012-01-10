@@ -33,7 +33,8 @@ sub new {
 
 sub make_index {
     
-	my ($this, $fastaFileName) = @_;
+	my ($this, $fastaFileName, $idregex) = @_;
+	if(!defined $idregex) { $idregex = "(\\S+)"; }
     
 	$this->fastaFileName($fastaFileName);
 	
@@ -52,7 +53,7 @@ sub make_index {
 	while(<$in>)
 	    {
 	    my $line = $_;
-	    if($line =~ /^>(\S*)/)
+	    if($line =~ /^>$idregex/)
 	        {
 	            # write the last record
 	            my @rec =  ($lastpos, $numlines);        

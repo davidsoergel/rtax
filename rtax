@@ -14,7 +14,7 @@ echoerr '2 Howard Hughes Medical Institute and Department of Chemistry '
 echoerr '  and Biochemistry, University of Colorado at Boulder'
 echoerr '* Corresponding author (current address): soergel@cs.umass.edu'
 echoerr ''
-echoerr 'Version 0.9302  (January 9, 2012)'
+echoerr 'Version 0.9303  (January 9, 2012)'
 echoerr ''
 echoerr 'http://dev.davidsoergel.com/rtax'
 echoerr ''
@@ -51,13 +51,14 @@ function abspath {
 
 # Grab the command-line arguments
 
-usageHelp="Usage: ${0##*/} -r <refdb> -t <taxonomy> -a <queryA> -b <queryB> -d <delimiter> -o <classifications.out>"
-refdbHelp="-r a reference database in FASTA format"
-taxonomyHelp="-t a taxonomy file with sequence IDs matching the reference database"
-queryAHelp="-a a FASTA file containing query sequences (single-ended or read 1)"
-queryBHelp="-b a FASTA file containing query sequences (read b, with matching IDs)"
-delimiterHelp="-d A delimiter separating the two reads when provided in a single file"
-outputHelp="-o the output path"
+usageHelp="Usage: ${0##*/} -r <refdb> -t <taxonomy> -a <queryA> -b <queryB> -d <delimiter> -i <regex> -o <classifications.out>"
+refdbHelp="-r  reference database in FASTA format"
+taxonomyHelp="-t  taxonomy file with sequence IDs matching the reference database"
+queryAHelp="-a  FASTA file containing query sequences (single-ended or read 1)"
+queryBHelp="-b  FASTA file containing query sequences (read b, with matching IDs)"
+delimiterHelp="-d  delimiter separating the two reads when provided in a single file"
+idRegexHelp="-i  regular expression used to select part of the fasta header to use as the sequence id.  Default: \"(\\\\S+)\""
+outputHelp="-o  output path"
 badOptionHelp="Option not recognised"
 printHelpAndExit()
 {
@@ -66,6 +67,7 @@ printHelpAndExit()
 	echoerr "$taxonomyHelp"
 	echoerr "$queryAHelp"
 	echoerr "$queryBHelp"
+	echoerr "$idRegexHelp"
 	echoerr "$delimiterHelp"
 	echoerr "$outputHelp"
 	exit $1
@@ -84,10 +86,11 @@ taxonomy=""
 queryA=""
 queryB=""
 delimiter=""
+idRegex=""
 verbose=""
 outpath=""
 
-while getopts "hr:t:a:b:d:o:v" optionName; do
+while getopts "hr:t:a:b:i:d:o:v" optionName; do
 case "$optionName" in
 h) printHelpAndExit 0;;
 r) refdb=`abspath "$OPTARG"`;;
@@ -95,6 +98,7 @@ t) taxonomy=`abspath "$OPTARG"`;;
 a) queryA=`abspath "$OPTARG"`;;
 b) queryB=`abspath "$OPTARG"`;;
 d) delimiter="$OPTARG";;
+i) idRegex="$OPTARG";;
 o) outpath=`abspath "$OPTARG"`;;
 v) verbose="0";;
 [?]) printErrorHelpAndExit "$badOptionHelp";;
@@ -110,6 +114,7 @@ echoerr Reference database : $refdb
 echoerr Taxonomy file      : $taxonomy
 echoerr Query read A       : $queryA
 echoerr Query read B       : $queryB
+# echoerr Header Regex : $idRegex
 echoerr Read delimiter : $delimiter
 echoerr Output path : $outpath
 echoerr
@@ -154,12 +159,12 @@ if [ $delimiter ]; then
     $scripts/splitDelimitedFasta.pl $delimiter $queryA
     queryAa=`basename $queryA`.a
     queryAb=`basename $queryA`.b
-    $scripts/rtaxSearchPair.pl --database $refdb --queryA $queryAa --queryB $queryAb --usearch $usearch > rawhits
+    $scripts/rtaxSearchPair.pl --database $refdb --queryA $queryAa --queryB $queryAb --usearch $usearch --idRegex "$idRegex" > rawhits
 else
     if [ $queryB ]; then
-        $scripts/rtaxSearchPair.pl --database $refdb --queryA $queryA --queryB $queryB --usearch $usearch > rawhits
+        $scripts/rtaxSearchPair.pl --database $refdb --queryA $queryA --queryB $queryB --usearch $usearch --idRegex "$idRegex" > rawhits
     else
-        $scripts/rtaxSearchSingle.pl --database $refdb --queryA $queryA  --usearch $usearch > rawhits
+        $scripts/rtaxSearchSingle.pl --database $refdb --queryA $queryA  --usearch $usearch --idRegex "$idRegex" > rawhits
     fi
 fi
 

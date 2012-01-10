@@ -13,7 +13,7 @@
 #
 # http://www.davidsoergel.com/rtax
 #
-# Version 0.9302  (January 9, 2012)
+# Version 0.9303  (January 9, 2012)
 #
 # For usage instructions: just run the script with no arguments
 #
@@ -64,6 +64,7 @@ use vars qw (
     $databaseFile
     $readAFileAll
     $readBFileAll
+    $idRegex
 );
 
 # each file provides reads from a different primer extracted from full-length sequence, in the same order
@@ -77,6 +78,7 @@ sub init {
         "maxMaxAccepts=s"                     => \$maxMaxAccepts,
         "maxPairPercentDifferenceThreshold=s" => \$maxPairPercentDifferenceThreshold,
         "databaseFile=s"                      => \$databaseFile,
+        "idRegex=s"                           => \$idRegex,
         "queryA=s"                            => \$readAFileAll,
         "queryB=s"                            => \$readBFileAll
     );
@@ -104,6 +106,8 @@ sub init {
     if ( !defined $maxPairPercentDifferenceThreshold ) {
         $maxPairPercentDifferenceThreshold = 0.2;
     }
+    if ( !defined $idRegex || $idRegex eq "") { $idRegex = "(\\S+)"; }
+    print STDERR "Header Regex: $idRegex\n";
 }
 
 sub usage {
@@ -164,6 +168,15 @@ OPTIONS:
     --queryA <file>     A FASTA file containing one set of query reads.
     
     --queryB <file>     A FASTA file containing the other set of query reads.
+    
+    --idRegex <regex>   A regular expression for extracting IDs from fasta
+                        headers.  The first capture group (aka $1) will be
+                        used as the sequence ID; these should be unique.
+                        This is useful when the ID needed to match mate
+                        pairs is embedded in the header in some way.
+                        "^>" is automatically prepended to the regex
+                        provided here.  Take care that double escaping may
+                        be required.  Default: "(\\S+)" (the first field)
     
     Note that the two query files must provide mate-paired reads with exactly
     matching identifiers (though they need not be in the same order).  Any ids
@@ -226,7 +239,10 @@ sub collectIds {
     my ( $typeF, $clusterF, $sizeF, $percentIdF, $strandF, $queryStartF, $targetStartF, $alignmentF, $queryLabelF, $targetLabelF ) =
         split /\t/, $firstLine;
     chomp $targetLabelF;
-    $queryLabelF =~ s/\s.*//;    # primary ID is only the portion before whitespace
+    
+    $queryLabelF =~ /$idRegex/;
+    $queryLabelF = $1;
+    #$queryLabelF =~ s/\s.*//;    # primary ID is only the portion before whitespace
 
     if ( $typeF eq "N" ) {
 
@@ -552,10 +568,10 @@ sub main {
 
     # these are redundant between multiple runs, oh well
     $indexA = FastaIndex->new();                   # '-filename' => "A.idx", '-write_flag' => 1 );
-    $indexA->make_index($readAFileAll);
+    $indexA->make_index($readAFileAll, $idRegex);
 
     $indexB = FastaIndex->new();                   # '-filename' => "B.idx", '-write_flag' => 1 );
-    $indexB->make_index($readBFileAll);
+    $indexB->make_index($readBFileAll, $idRegex);
 
     my @union        = ();
     my @intersection = ();
@@ -581,6 +597,8 @@ sub main {
             push @{ $count{$element} > 1 ? \@intersection : \@difference }, $element;
         }
     }
+
+    # this is where we could fall back to single-ended classification as needed
 
     # sequence ids mentioned in one of the two files, but not both
     foreach my $element (@difference) {
