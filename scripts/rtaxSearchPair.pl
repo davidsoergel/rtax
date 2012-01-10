@@ -277,8 +277,8 @@ sub collectIds {
             split /\t/;
         chomp $targetLabel;
         
-        $queryLabelF =~ /$idRegex/;
-        $queryLabelF = $1;
+        $queryLabel =~ /$idRegex/;
+        $queryLabel = $1;
         #$queryLabel =~ s/\s.*//;    # primary ID is only the portion before whitespace
 
         if ( $queryLabel ne $queryLabelF ) {
