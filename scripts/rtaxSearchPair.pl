@@ -240,8 +240,7 @@ sub collectIds {
         split /\t/, $firstLine;
     chomp $targetLabelF;
     
-    $queryLabelF =~ /$idRegex/;
-    $queryLabelF = $1;
+    ($queryLabelF) = $queryLabelF =~ /$idRegex/;
     #$queryLabelF =~ s/\s.*//;    # primary ID is only the portion before whitespace
 
     if ( $typeF eq "N" ) {
@@ -276,7 +275,9 @@ sub collectIds {
         my ( $type, $cluster, $size, $percentId, $strand, $queryStart, $targetStart, $alignment, $queryLabel, $targetLabel ) =
             split /\t/;
         chomp $targetLabel;
-        $queryLabel =~ s/\s.*//;    # primary ID is only the portion before whitespace
+        
+        ($queryLabelF) = $queryLabelF =~ /$idRegex/;
+        #$queryLabel =~ s/\s.*//;    # primary ID is only the portion before whitespace
 
         if ( $queryLabel ne $queryLabelF ) {
 
