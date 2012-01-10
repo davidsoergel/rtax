@@ -55,9 +55,11 @@ sub make_index {
 	    my $line = $_;
 	    if($line =~ /^>$idregex/)
 	        {
-	            # write the last record
-	            my @rec =  ($lastpos, $numlines);        
-	            $this->db()->{$id} = \@rec;
+	            #if($id ne "") {
+	                # write the previous record
+	                my @rec =  ($lastpos, $numlines);        
+	                $this->db()->{$id} = \@rec;
+                #   }
 	            
 	            # start a new record
 	            $id = $1;
@@ -70,6 +72,7 @@ sub make_index {
 	    $pos += length($line);
 	    $numlines++;
         }
+    delete($this->db()->{""});  # spurious entries from the start of the loop
 }
 
 sub count_records()
