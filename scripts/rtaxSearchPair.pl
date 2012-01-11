@@ -65,6 +65,7 @@ use vars qw (
     $readAFileAll
     $readBFileAll
     $idRegex
+    $idList
 );
 
 # each file provides reads from a different primer extracted from full-length sequence, in the same order
@@ -80,7 +81,8 @@ sub init {
         "databaseFile=s"                      => \$databaseFile,
         "idRegex=s"                           => \$idRegex,
         "queryA=s"                            => \$readAFileAll,
-        "queryB=s"                            => \$readBFileAll
+        "queryB=s"                            => \$readBFileAll,
+        "idList=s"                            => \$idList
     );
 
     if (   !defined $databaseFile
@@ -178,11 +180,15 @@ OPTIONS:
                         provided here.  Take care that double escaping may
                         be required.  Default: "(\\S+)" (the first field)
     
+    --idList <file>     A file containing a list of IDs to process (one per 
+                        line).  By default all IDs in the query A file are
+                        used.
+    
     Note that the two query files must provide mate-paired reads with exactly
     matching identifiers (though they need not be in the same order).  Any ids
-    present in one file but not the other are silently dropped.  Please contact
-    us for help accomodating alternate naming schemes for the paired reads
-    (e.g., "SOMEID.a" paired with "SOMEID.b", and so forth).
+    present in one file but not the other are silently dropped.  Alternate
+    naming schemes for the paired reads (e.g., "SOMEID.a" paired with
+    "SOMEID.b", and so forth) are handled via the --idRegex option.
     
     Various indexes and derived FASTA files will be created in a temporary
     directory and are cleaned up afterwards.
@@ -569,6 +575,14 @@ sub main {
 
     my $pairPercentDifferenceThreshold = 0.005;    # this gets doubled to 1% before being used the first time
 
+    my @idList = ();
+    if($idList)
+        {
+            open(IDLIST, "$idList") or die "Could not open $idList";
+            while(<IDLIST>) { chomp; push @idList, $_; }
+            close IDLIST;
+        }
+
     # these are redundant between multiple runs, oh well
     $indexA = FastaIndex->new();                   # '-filename' => "A.idx", '-write_flag' => 1 );
     $indexA->make_index($readAFileAll, $idRegex);
@@ -586,7 +600,7 @@ sub main {
     #print STDERR "idsA = " . (join " ", @idsA) . "\n";
     #print STDERR "idsB = " . (join " ", @idsB) . "\n";
 
-    foreach my $element ( @idsA, @idsB ) {
+    foreach my $element ( @idsA, @idsB, @idList ) {
         if ( ( $element =~ /[\t ]/ ) > 0 )    # $indexA->db() should return parsed IDs with no whitespace
         {
             print STDERR "Invalid FASTA id: $element\n";
@@ -594,10 +608,14 @@ sub main {
         }
         $count{$element}++;
     }
+    # if there is an ID list, then intersect all three sets
+    my $intersectionThreshold = $idList ? 3 : 2;
     foreach my $element ( keys %count ) {
         if ( !( $element =~ /^__/ ) ) {
             push @union, $element;
-            push @{ $count{$element} > 1 ? \@intersection : \@difference }, $element;
+            push @{ $count{$element} >= $intersectionThreshold  ? \@intersection : \@difference }, $element;
+            # we don't currently use @difference, but if/when we do, be careful:
+            # if there is an ID list then its unique elements end up in @difference too
         }
     }
 

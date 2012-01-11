@@ -56,6 +56,7 @@ refdbHelp="-r  reference database in FASTA format"
 taxonomyHelp="-t  taxonomy file with sequence IDs matching the reference database"
 queryAHelp="-a  FASTA file containing query sequences (single-ended or read 1)"
 queryBHelp="-b  FASTA file containing query sequences (read b, with matching IDs)"
+idListHelp="-l  Text file containing sequence IDs to process, one per line"
 delimiterHelp="-d  delimiter separating the two reads when provided in a single file"
 idRegexHelp="-i  regular expression used to select part of the fasta header to use as the sequence id.  Default: \"(\\\\S+)\""
 outputHelp="-o  output path"
@@ -68,6 +69,7 @@ printHelpAndExit()
 	echoerr "$queryAHelp"
 	echoerr "$queryBHelp"
 	echoerr "$idRegexHelp"
+	echoerr "$idListHelp"
 	echoerr "$delimiterHelp"
 	echoerr "$outputHelp"
 	exit $1
@@ -86,11 +88,12 @@ taxonomy=""
 queryA=""
 queryB=""
 delimiter=""
+idList=""
 idRegex=""
 verbose=""
 outpath=""
 
-while getopts "hr:t:a:b:i:d:o:v" optionName; do
+while getopts "hr:t:a:b:i:l:d:o:v" optionName; do
 case "$optionName" in
 h) printHelpAndExit 0;;
 r) refdb=`abspath "$OPTARG"`;;
@@ -99,6 +102,7 @@ a) queryA=`abspath "$OPTARG"`;;
 b) queryB=`abspath "$OPTARG"`;;
 d) delimiter="$OPTARG";;
 i) idRegex="$OPTARG";;
+l) idList=`abspath "$OPTARG"`;;
 o) outpath=`abspath "$OPTARG"`;;
 v) verbose="0";;
 [?]) printErrorHelpAndExit "$badOptionHelp";;
@@ -112,6 +116,7 @@ then
 echoerr
 echoerr Reference database : $refdb
 echoerr Taxonomy file      : $taxonomy
+echoerr ID List            : $idList
 echoerr Query read A       : $queryA
 echoerr Query read B       : $queryB
 # echoerr Header Regex : $idRegex
@@ -159,12 +164,12 @@ if [ $delimiter ]; then
     $scripts/splitDelimitedFasta.pl $delimiter $queryA
     queryAa=`basename $queryA`.a
     queryAb=`basename $queryA`.b
-    $scripts/rtaxSearchPair.pl --database $refdb --queryA $queryAa --queryB $queryAb --usearch $usearch --idRegex "$idRegex" > rawhits
+    $scripts/rtaxSearchPair.pl --database $refdb --queryA $queryAa --queryB $queryAb --idList $idList --usearch $usearch --idRegex "$idRegex" > rawhits
 else
     if [ $queryB ]; then
-        $scripts/rtaxSearchPair.pl --database $refdb --queryA $queryA --queryB $queryB --usearch $usearch --idRegex "$idRegex" > rawhits
+        $scripts/rtaxSearchPair.pl --database $refdb --queryA $queryA --queryB $queryB --idList $idList --usearch $usearch --idRegex "$idRegex" > rawhits
     else
-        $scripts/rtaxSearchSingle.pl --database $refdb --queryA $queryA  --usearch $usearch --idRegex "$idRegex" > rawhits
+        $scripts/rtaxSearchSingle.pl --database $refdb --queryA $queryA --idList $idList --usearch $usearch --idRegex "$idRegex" > rawhits
     fi
 fi
 
