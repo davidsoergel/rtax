@@ -161,7 +161,7 @@ if [ ! $tempdir ]; then
     tempdir=/tmp/rtax.$RANDOM
     #tempdir=./rtax.$RANDOM
 fi
-mkdir $tempdir
+mkdir -p $tempdir
 cd $tempdir
 
 # perform the search
