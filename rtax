@@ -157,9 +157,7 @@ set -e
 
 # create a temporary working directory
 
-if [ $tempdir ]; then
-    # do nothing
-else
+if [ ! $tempdir ]; then
     tempdir=/tmp/rtax.$RANDOM
     #tempdir=./rtax.$RANDOM
 fi
