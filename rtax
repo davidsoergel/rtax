@@ -60,6 +60,7 @@ idListHelp="-l  Text file containing sequence IDs to process, one per line"
 delimiterHelp="-d  delimiter separating the two reads when provided in a single file"
 idRegexHelp="-i  regular expression used to select part of the fasta header to use as the sequence id.  Default: \"(\\\\S+)\""
 outputHelp="-o  output path"
+tmpdirHelp="-m  temporary directory.  Will be removed on successful completion, but likely not if there is an error."
 badOptionHelp="Option not recognised"
 printHelpAndExit()
 {
@@ -71,6 +72,7 @@ printHelpAndExit()
 	echoerr "$idRegexHelp"
 	echoerr "$idListHelp"
 	echoerr "$delimiterHelp"
+	echoerr "$tmpdirHelp"
 	echoerr "$outputHelp"
 	exit $1
 }
@@ -92,8 +94,9 @@ idList=""
 idRegex=""
 verbose=""
 outpath=""
+tempdir=""
 
-while getopts "hr:t:a:b:i:l:d:o:v" optionName; do
+while getopts "hr:t:a:b:i:l:d:m:o:v" optionName; do
 case "$optionName" in
 h) printHelpAndExit 0;;
 r) refdb=`abspath "$OPTARG"`;;
@@ -104,6 +107,7 @@ d) delimiter="$OPTARG";;
 i) idRegex="$OPTARG";;
 l) idList=`abspath "$OPTARG"`;;
 o) outpath=`abspath "$OPTARG"`;;
+m) tempdir=`abspath "$OPTARG"`;;
 v) verbose="0";;
 [?]) printErrorHelpAndExit "$badOptionHelp";;
 esac
@@ -120,8 +124,9 @@ echoerr ID List            : $idList
 echoerr Query read A       : $queryA
 echoerr Query read B       : $queryB
 # echoerr Header Regex : $idRegex
-echoerr Read delimiter : $delimiter
-echoerr Output path : $outpath
+echoerr Read delimiter     : $delimiter
+echoerr Output path        : $outpath
+echoerr Temporary dir      : $tempdir
 echoerr
 fi
 
@@ -152,8 +157,12 @@ set -e
 
 # create a temporary working directory
 
-#tempdir=/tmp/rtax.$RANDOM
-tempdir=./rtax.$RANDOM
+if [ $tempdir ]; then
+    # do nothing
+else
+    tempdir=/tmp/rtax.$RANDOM
+    #tempdir=./rtax.$RANDOM
+fi
 mkdir $tempdir
 cd $tempdir
 
