@@ -286,7 +286,9 @@ sub partitionReadFiles {
             if    ( $count{$element} == 1 ) { push @aOnly,     $element }
             elsif ( $count{$element} == 2 ) { push @bOnly,     $element }
             elsif ( $count{$element} == 3 ) { push @bothAandB, $element }
-            else                            { die "impossible" }
+            else                            { 
+                # no problem; these are sequences not in the idList
+                }
         }
     }
 
