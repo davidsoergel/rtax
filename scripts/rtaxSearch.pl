@@ -226,11 +226,11 @@ sub main {
 
     init();
 
-    my ( $pairedReadAFile, $pairedReadBFile, $singleReadAFile, $singleReadBFile ) = partitionReadFiles();
+    my ( $pairedReadAFile, $pairedReadBFile, $pairedBothCount, $singleReadAFile,$singleReadACount, $singleReadBFile,$singleReadBCount ) = partitionReadFiles();
 
-    processPairs( $pairedReadAFile, $pairedReadBFile );
-    processSingle($singleReadAFile);
-    processSingle($singleReadBFile);
+    processPairs( $pairedReadAFile, $pairedReadBFile, $pairedBothCount );
+    processSingle($singleReadAFile, $singleReadACount);
+    processSingle($singleReadBFile, $singleReadBCount);
 
 }
 
@@ -302,12 +302,13 @@ sub partitionReadFiles {
     my $singleReadAFile = extractFasta( $indexA, \@aOnly );
     my $singleReadBFile = extractFasta( $indexB, \@bOnly );
 
-    return ( $pairedReadAFile, $pairedReadBFile, $singleReadAFile, $singleReadBFile );
+    return ( $pairedReadAFile, $pairedReadBFile, scalar(@bothAandB), $singleReadAFile, scalar(@aOnly), $singleReadBFile, scalar(@bOnly) );
 }
 
 sub processPairs {
-    my ( $pairedReadAFile, $pairedReadBFile ) = @_;
-
+    my ( $pairedReadAFile, $pairedReadBFile,$pairedBothCount ) = @_;
+    if ($pairedBothCount  == 0) { return; }
+    
     my $nohitQueryIds = [];
     push @$nohitQueryIds, "ALL";
     my $tooManyHitQueryIds = [];
@@ -334,7 +335,7 @@ sub processPairs {
         # so there's really no point in testing this query again at an even lower threshold
         my $tooManyHitQueryIdsThisRound;
 
-        my $numRemaining = ( $nohitQueryIds->[0] eq "ALL" ) ? "all" : scalar(@$nohitQueryIds);
+        my $numRemaining = ( $nohitQueryIds->[0] eq "ALL" ) ? $pairedBothCount : scalar(@$nohitQueryIds);
 
         print STDERR "doPairSearch $pairedReadAFile, $pairedReadBFile: $numRemaining query sequences remaining\n     searching with pair %id "
             . $percentDifferenceThreshold
@@ -366,8 +367,8 @@ sub processPairs {
 }
 
 sub processSingle {
-    my ($singleReadFile) = @_;
-    if ( !defined $singleReadFile || $singleReadFile eq "" ) { return; }
+    my ($singleReadFile, $singleReadCount) = @_;
+    if ( !defined $singleReadFile || $singleReadFile eq "" || $singleReadCount == 0) { return; }
 
     my $nohitQueryIds = [];
     push @$nohitQueryIds, "ALL";
@@ -389,7 +390,7 @@ sub processSingle {
             $singleReadFile = extractFasta( $indexA, $nohitQueryIds );
         }
 
-        my $numRemaining = ( $nohitQueryIds->[0] eq "ALL" ) ? $indexA->count_records() : scalar(@$nohitQueryIds);
+        my $numRemaining = ( $nohitQueryIds->[0] eq "ALL" ) ? $singleReadCount : scalar(@$nohitQueryIds);
 
         # within doSearch we escalate maxAccepts, so if a queryLabel is still marked tooManyHits at this point,
         # that means that there are more than maxMaxAccepts hits for this threshold--
@@ -506,10 +507,14 @@ sub doSingleSearch {
             die "A TOOMANYHITS case can't turn into a NOHITS case";
         }
     }
+    
+    print STDERR
+        "doPairSearch $readAFile: Finished at pair threshold $singlePercentDifferenceThreshold and maxAccepts $maxAccepts\n";
+    print STDERR "         NOHITS: " . scalar(@$nohitQueryIds) . "\n";
+    print STDERR "    TOOMANYHITS: " . scalar(@$tooManyHitQueryIds) . "\n";
 
-    print STDERR "Finished doSearch at threshold $singlePercentDifferenceThreshold and maxAccepts $maxAccepts\n";
-    print STDERR "NOHITS: " .      ( join ", ", @$nohitQueryIds ) . "\n";
-    print STDERR "TOOMANYHITS: " . ( join ", ", @$tooManyHitQueryIds ) . "\n";
+    # print STDERR "         NOHITS: " .      ( join ", ", @$nohitQueryIds ) . "\n";
+    # print STDERR "    TOOMANYHITS: " . ( join ", ", @$tooManyHitQueryIds ) . "\n";
 
     # any tooManyHitQueryIds that remain had more than maxMaxAccepts hits
     return ( $nohitQueryIds, $tooManyHitQueryIds );
