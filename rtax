@@ -14,7 +14,7 @@ echoerr '2 Howard Hughes Medical Institute and Department of Chemistry '
 echoerr '  and Biochemistry, University of Colorado at Boulder'
 echoerr '* Corresponding author (current address): soergel@cs.umass.edu'
 echoerr ''
-echoerr 'Version 0.94  (January 12, 2012)'
+echoerr 'Version 0.95  (February 10, 2012)'
 echoerr ''
 echoerr 'http://dev.davidsoergel.com/rtax'
 echoerr ''
@@ -56,7 +56,7 @@ refdbHelp="-r  reference database in FASTA format"
 taxonomyHelp="-t  taxonomy file with sequence IDs matching the reference database"
 queryAHelp="-a  FASTA file containing query sequences (single-ended or read 1)"
 queryBHelp="-b  FASTA file containing query sequences (read b, with matching IDs)"
-idListHelp="-l  Text file containing sequence IDs to process, one per line"
+idListHelp="-l  text file containing sequence IDs to process, one per line"
 delimiterHelp="-d  delimiter separating the two reads when provided in a single file"
 idRegexHelp="-i  regular expression used to select part of the fasta header to use as the sequence id.  Default: \"(\\\\S+)\""
 outputHelp="-o  output path"
@@ -171,12 +171,12 @@ if [ $delimiter ]; then
     $scripts/splitDelimitedFasta.pl $delimiter $queryA
     queryAa=`basename $queryA`.a
     queryAb=`basename $queryA`.b
-    $scripts/rtaxSearchPair.pl --database $refdb --queryA $queryAa --queryB $queryAb --idList $idList --usearch $usearch --idRegex "$idRegex" > rawhits
+    $scripts/rtaxSearch.pl --database $refdb --queryA $queryAa --queryB $queryAb --idList $idList --usearch $usearch --idRegex "$idRegex" > rawhits
 else
     if [ $queryB ]; then
-        $scripts/rtaxSearchPair.pl --database $refdb --queryA $queryA --queryB $queryB --idList $idList --usearch $usearch --idRegex "$idRegex" > rawhits
+        $scripts/rtaxSearch.pl --database $refdb --queryA $queryA --queryB $queryB --idList $idList --usearch $usearch --idRegex "$idRegex" > rawhits
     else
-        $scripts/rtaxSearchSingle.pl --database $refdb --queryA $queryA --idList $idList --usearch $usearch --idRegex "$idRegex" > rawhits
+        $scripts/rtaxSearch.pl --database $refdb --queryA $queryA --idList $idList --usearch $usearch --idRegex "$idRegex" > rawhits
     fi
 fi
 
