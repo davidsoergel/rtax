@@ -694,7 +694,7 @@ sub doPairSearch {
         my $readBFileEsc = extractFasta( $indexB, $tooManyHitQueryIds );
 
         ( $nohitQueryIdsB, $tooManyHitQueryIds ) =
-            doPairSearch( scalar(@$tooManyHitQueryIds), $readAFileEsc, $readBFileEsc, $pairPercentDifferenceThreshold, $maxAccepts * 2 );
+            doPairSearch( $readAFileEsc, $readBFileEsc, $pairPercentDifferenceThreshold, $maxAccepts * 2 );
 
         # A TOOMANYHITS case can certainly turn into a NOHITS case:
         # once one read is no longer TOOMANYHITS, it may turn out that nothing can be reconciled with the other read.
