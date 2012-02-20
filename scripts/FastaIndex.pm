@@ -80,7 +80,7 @@ sub make_index {
 	        {
 	            if(defined $id && $id ne "") {
 	                # write the previous record        
-	                print STDERR "$id -> $lastpos\n";
+	                #print STDERR "$id -> $lastpos\n";
 	                $this->startpos()->{$id} = $lastpos;
 	                $this->lines()->{$id} = $numlines;
                    }
