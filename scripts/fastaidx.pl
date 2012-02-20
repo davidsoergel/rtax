@@ -9,7 +9,7 @@ use FindBin;
 use lib "$FindBin::Bin";
 use FastaIndex;
 
-my ($fastaFileName, $idFileName, $idRegex) = @ARGV;
+my ($fastaFileName, $idRegex) = @ARGV;
 
 my $indexA = FastaIndex->new();    # '-filename' => "A.idx", '-write_flag' => 1 );
 print STDERR "Indexing $fastaFileName...\n";
