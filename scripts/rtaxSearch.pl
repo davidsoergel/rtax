@@ -13,7 +13,7 @@
 #
 # http://www.davidsoergel.com/rtax
 #
-# Version 0.95  (February 10, 2012)
+# Version 0.96  (February 19, 2012)
 #
 # For usage instructions: just run the script with no arguments
 #
@@ -68,6 +68,7 @@ use vars qw (
     $readBFileAll
     $idRegex
     $idList
+    $singleOK
 );
 
 # just store these as globals for now-- they're basically like command-line args
@@ -86,7 +87,8 @@ sub init {
         "idRegex=s"                       => \$idRegex,
         "queryA=s"                        => \$readAFileAll,
         "queryB=s"                        => \$readBFileAll,
-        "idList=s"                        => \$idList
+        "idList=s"                        => \$idList,
+        "singleOK"                        => \$singleOK
     );
 
     if (   !defined $databaseFile
@@ -115,12 +117,13 @@ sub init {
     print STDERR "Header Regex: $idRegex\n";
 
     # these are redundant between multiple runs, oh well
+    # but the DBM indexes should persist, in the same directory as the original files
     $indexA = FastaIndex->new();    # '-filename' => "A.idx", '-write_flag' => 1 );
-    $indexA->make_index( $readAFileAll, $idRegex );
+    $indexA->make_index( $readAFileAll, $idRegex, $readAFileAll );
 
     $indexB = FastaIndex->new();
     if ( defined $readBFileAll ) {    # '-filename' => "B.idx", '-write_flag' => 1 );
-        $indexB->make_index( $readBFileAll, $idRegex );
+        $indexB->make_index( $readBFileAll, $idRegex, $readAFileAll );
     }
 }
 
@@ -183,6 +186,13 @@ OPTIONS:
     
     --queryB <file>     A FASTA file containing the other set of query reads
                         (if any).
+                        
+    --singleOK          Classify a sequence based on only one read.  Required
+                        when queryB is absent.  Default: sequences present in
+                        only one of the two input files are dropped.  When
+                        enabled, paired-end sequences are classified using
+                        both reads as usual, but any remaining single-ended
+                        reads are also classified.
     
     --idRegex <regex>   A regular expression for extracting IDs from fasta
                         headers.  The first capture group (aka \$1) will be
@@ -229,9 +239,12 @@ sub main {
     my ( $pairedReadAFile, $pairedReadBFile, $pairedBothCount, $singleReadAFile,$singleReadACount, $singleReadBFile,$singleReadBCount ) = partitionReadFiles();
 
     processPairs( $pairedReadAFile, $pairedReadBFile, $pairedBothCount );
-    processSingle($singleReadAFile, $singleReadACount);
-    processSingle($singleReadBFile, $singleReadBCount);
-
+    
+    if($singleOK)
+        {
+            processSingle($singleReadAFile, $singleReadACount);
+            processSingle($singleReadBFile, $singleReadBCount);
+        }
 }
 
 sub partitionReadFiles {

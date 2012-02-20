@@ -14,7 +14,7 @@ echoerr '2 Howard Hughes Medical Institute and Department of Chemistry '
 echoerr '  and Biochemistry, University of Colorado at Boulder'
 echoerr '* Corresponding author (current address): soergel@cs.umass.edu'
 echoerr ''
-echoerr 'Version 0.95  (February 10, 2012)'
+echoerr 'Version 0.96  (February 19, 2012)'
 echoerr ''
 echoerr 'http://dev.davidsoergel.com/rtax'
 echoerr ''
@@ -61,6 +61,7 @@ delimiterHelp="-d  delimiter separating the two reads when provided in a single 
 idRegexHelp="-i  regular expression used to select part of the fasta header to use as the sequence id.  Default: \"(\\\\S+)\""
 outputHelp="-o  output path"
 tmpdirHelp="-m  temporary directory.  Will be removed on successful completion, but likely not if there is an error."
+fallbackHelp="-f  for sequences where only one read is available, fall back to single-ended classification.  Default: drop these sequences.
 badOptionHelp="Option not recognised"
 printHelpAndExit()
 {
@@ -73,6 +74,7 @@ printHelpAndExit()
 	echoerr "$idListHelp"
 	echoerr "$delimiterHelp"
 	echoerr "$tmpdirHelp"
+	echoerr "$fallbackHelp"
 	echoerr "$outputHelp"
 	exit $1
 }
@@ -93,10 +95,11 @@ delimiter=""
 idList=""
 idRegex=""
 verbose=""
+fallback=""
 outpath=""
 tempdir=""
 
-while getopts "hr:t:a:b:i:l:d:m:o:v" optionName; do
+while getopts "hr:t:a:b:i:l:d:m:o:v:f" optionName; do
 case "$optionName" in
 h) printHelpAndExit 0;;
 r) refdb=`abspath "$OPTARG"`;;
@@ -109,6 +112,7 @@ l) idList=`abspath "$OPTARG"`;;
 o) outpath=`abspath "$OPTARG"`;;
 m) tempdir=`abspath "$OPTARG"`;;
 v) verbose="0";;
+f) fallback="--singleOK";;
 [?]) printErrorHelpAndExit "$badOptionHelp";;
 esac
 done
@@ -127,6 +131,7 @@ echoerr Query read B       : $queryB
 echoerr Read delimiter     : $delimiter
 echoerr Output path        : $outpath
 echoerr Temporary dir      : $tempdir
+echoerr Fallback           : $fallback
 echoerr
 fi
 
@@ -171,12 +176,13 @@ if [ $delimiter ]; then
     $scripts/splitDelimitedFasta.pl $delimiter $queryA
     queryAa=`basename $queryA`.a
     queryAb=`basename $queryA`.b
-    $scripts/rtaxSearch.pl --database $refdb --queryA $queryAa --queryB $queryAb --idList $idList --usearch $usearch --idRegex "$idRegex" > rawhits
+    $scripts/rtaxSearch.pl --database $refdb --queryA $queryAa --queryB $queryAb --idList $idList --usearch $usearch --idRegex "$idRegex" $fallback > rawhits
 else
     if [ $queryB ]; then
-        $scripts/rtaxSearch.pl --database $refdb --queryA $queryA --queryB $queryB --idList $idList --usearch $usearch --idRegex "$idRegex" > rawhits
+        $scripts/rtaxSearch.pl --database $refdb --queryA $queryA --queryB $queryB --idList $idList --usearch $usearch --idRegex "$idRegex" $fallback > rawhits
     else
-        $scripts/rtaxSearch.pl --database $refdb --queryA $queryA --idList $idList --usearch $usearch --idRegex "$idRegex" > rawhits
+        $fallback="--singleOK"
+        $scripts/rtaxSearch.pl --database $refdb --queryA $queryA --idList $idList --usearch $usearch --idRegex "$idRegex" $fallback > rawhits
     fi
 fi
 
