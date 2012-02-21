@@ -123,7 +123,7 @@ sub init {
 
     $indexB = FastaIndex->new();
     if ( defined $readBFileAll ) {    # '-filename' => "B.idx", '-write_flag' => 1 );
-        $indexB->make_index( $readBFileAll, $idRegex, $readAFileAll );
+        $indexB->make_index( $readBFileAll, $idRegex, $readBFileAll );
     }
 }
 
