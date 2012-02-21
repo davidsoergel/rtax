@@ -256,8 +256,8 @@ sub partitionReadFiles {
         close IDLIST;
     }
 
-    my @idsA = keys %{ $indexA->db() };    
-    my @idsB = defined $indexB->db() ? keys %{ $indexB->db() } : ();    # in the single-read case, there should still be an empty index
+    my @idsA = keys %{ $indexA->startpos() };    
+    my @idsB = defined $indexB->startpos() ? keys %{ $indexB->startpos() } : ();    # in the single-read case, there should still be an empty index
 
     my @bothAandB = ();
     my @aOnly     = ();
