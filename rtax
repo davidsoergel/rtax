@@ -61,7 +61,7 @@ delimiterHelp="-d  delimiter separating the two reads when provided in a single 
 idRegexHelp="-i  regular expression used to select part of the fasta header to use as the sequence id.  Default: \"(\\\\S+)\""
 outputHelp="-o  output path"
 tmpdirHelp="-m  temporary directory.  Will be removed on successful completion, but likely not if there is an error."
-fallbackHelp="-f  for sequences where only one read is available, fall back to single-ended classification.  Default: drop these sequences.
+fallbackHelp="-f  for sequences where only one read is available, fall back to single-ended classification.  Default: drop these sequences."
 badOptionHelp="Option not recognised"
 printHelpAndExit()
 {
