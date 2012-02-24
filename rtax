@@ -181,7 +181,7 @@ else
     if [ $queryB ]; then
         $scripts/rtaxSearch.pl --database $refdb --queryA $queryA --queryB $queryB --idList $idList --usearch $usearch --idRegex "$idRegex" $fallback > rawhits
     else
-        $fallback="--singleOK"
+        fallback="--singleOK"
         $scripts/rtaxSearch.pl --database $refdb --queryA $queryA --idList $idList --usearch $usearch --idRegex "$idRegex" $fallback > rawhits
     fi
 fi
