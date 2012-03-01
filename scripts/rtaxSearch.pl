@@ -13,7 +13,7 @@
 #
 # http://www.davidsoergel.com/rtax
 #
-# Version 0.96  (February 19, 2012)
+# Version 0.97  (February 29, 2012)
 #
 # For usage instructions: just run the script with no arguments
 #
@@ -141,7 +141,7 @@ David A. W. Soergel (1*), Rob Knight (2), and Steven E. Brenner (1)
 
 http://www.davidsoergel.com/rtax
 
-Version 0.95  (February 10, 2012)
+Version 0.97  (February 29, 2012)
 
 OPTIONS:
 
@@ -236,15 +236,15 @@ sub main {
 
     init();
 
-    my ( $pairedReadAFile, $pairedReadBFile, $pairedBothCount, $singleReadAFile,$singleReadACount, $singleReadBFile,$singleReadBCount ) = partitionReadFiles();
+    my ( $pairedReadAFile, $pairedReadBFile, $pairedBothCount, $singleReadAFile, $singleReadACount, $singleReadBFile, $singleReadBCount ) =
+        partitionReadFiles();
 
     processPairs( $pairedReadAFile, $pairedReadBFile, $pairedBothCount );
-    
-    if($singleOK)
-        {
-            processSingle($singleReadAFile, $singleReadACount);
-            processSingle($singleReadBFile, $singleReadBCount);
-        }
+
+    if ($singleOK) {
+        processSingle( $singleReadAFile, $singleReadACount );
+        processSingle( $singleReadBFile, $singleReadBCount );
+    }
 }
 
 sub partitionReadFiles {
@@ -256,8 +256,9 @@ sub partitionReadFiles {
         close IDLIST;
     }
 
-    my @idsA = keys %{ $indexA->startpos() };    
-    my @idsB = defined $indexB->startpos() ? keys %{ $indexB->startpos() } : ();    # in the single-read case, there should still be an empty index
+    my @idsA = keys %{ $indexA->startpos() };
+    my @idsB =
+        defined $indexB->startpos() ? keys %{ $indexB->startpos() } : ();    # in the single-read case, there should still be an empty index
 
     my @bothAandB = ();
     my @aOnly     = ();
@@ -268,7 +269,7 @@ sub partitionReadFiles {
     my %count = ();
 
     foreach my $element (@idsA) {
-        if ( ( $element =~ /[\t ]/ ) > 0 )    # $indexA->db() should return parsed IDs with no whitespace
+        if ( ( $element =~ /[\t ]/ ) > 0 )                                   # $indexA->db() should return parsed IDs with no whitespace
         {
             die "Invalid FASTA id: $element\n";
         }
@@ -276,7 +277,7 @@ sub partitionReadFiles {
     }
 
     foreach my $element (@idsB) {
-        if ( ( $element =~ /[\t ]/ ) > 0 )    # $indexA->db() should return parsed IDs with no whitespace
+        if ( ( $element =~ /[\t ]/ ) > 0 )                                   # $indexA->db() should return parsed IDs with no whitespace
         {
             die "Invalid FASTA id: $element\n";
         }
@@ -299,15 +300,16 @@ sub partitionReadFiles {
             if    ( $count{$element} == 1 ) { push @aOnly,     $element }
             elsif ( $count{$element} == 2 ) { push @bOnly,     $element }
             elsif ( $count{$element} == 3 ) { push @bothAandB, $element }
-            else                            { 
+            else {
+
                 # no problem; these are sequences not in the idList
-                }
+            }
         }
     }
 
-    print STDERR "file a = " . scalar(@aOnly) . " sequences\n";
-    print STDERR "file b = " . scalar(@bOnly) . " sequences\n";
-    print STDERR "both   = " . scalar(@bothAandB) . " sequences\n";
+    print STDERR "file a only = " . scalar(@aOnly) . " sequences\n";
+    print STDERR "file b only = " . scalar(@bOnly) . " sequences\n";
+    print STDERR "both        = " . scalar(@bothAandB) . " sequences\n";
 
     my $pairedReadAFile = extractFasta( $indexA, \@bothAandB );
     my $pairedReadBFile = extractFasta( $indexB, \@bothAandB );
@@ -319,9 +321,9 @@ sub partitionReadFiles {
 }
 
 sub processPairs {
-    my ( $pairedReadAFile, $pairedReadBFile,$pairedBothCount ) = @_;
-    if ($pairedBothCount  == 0) { return; }
-    
+    my ( $pairedReadAFile, $pairedReadBFile, $pairedBothCount ) = @_;
+    if ( $pairedBothCount == 0 ) { return; }
+
     my $nohitQueryIds = [];
     push @$nohitQueryIds, "ALL";
     my $tooManyHitQueryIds = [];
@@ -350,7 +352,8 @@ sub processPairs {
 
         my $numRemaining = ( $nohitQueryIds->[0] eq "ALL" ) ? $pairedBothCount : scalar(@$nohitQueryIds);
 
-        print STDERR "doPairSearch $pairedReadAFile, $pairedReadBFile: $numRemaining query sequences remaining\n     searching with pair %id "
+        print STDERR
+            "doPairSearch $pairedReadAFile, $pairedReadBFile: $numRemaining query sequences remaining\n     searching with pair %id "
             . $percentDifferenceThreshold
             . " and maxAccepts "
             . $minMaxAccepts . "\n";
@@ -380,8 +383,8 @@ sub processPairs {
 }
 
 sub processSingle {
-    my ($singleReadFile, $singleReadCount) = @_;
-    if ( !defined $singleReadFile || $singleReadFile eq "" || $singleReadCount == 0) { return; }
+    my ( $singleReadFile, $singleReadCount ) = @_;
+    if ( !defined $singleReadFile || $singleReadFile eq "" || $singleReadCount == 0 ) { return; }
 
     my $nohitQueryIds = [];
     push @$nohitQueryIds, "ALL";
@@ -458,21 +461,36 @@ sub doSingleSearch {
     my $dir = File::Temp->newdir();
     if ( system( 'mknod', "$dir/a", 'p' ) && system( 'mkfifo', "$dir/a" ) ) { die "mk{nod,fifo} $dir/a failed"; }
     if ( !fork() ) {
+        
+        # see paired end case for explanation
+        open( UCAW, ">$dir/a" ) || die("Couldn't write named pipe: $dir/a");
+        print UCAW "# pipe open!\n";
+        close UCAW;
+        
         my $cmd =
 "$usearch --quiet --iddef 2 --query $readAFile --db $databaseFile --uc $dir/a --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject";
         print STDERR $cmd . "\n";
         exec $cmd || die "can't fork usearch: $!";
     }
 
-    open( UCA, "$dir/a" );
+    open( UCA, "$dir/a" ) || die("Couldn't read named pipe from usearch: $dir/a");
+    #print STDERR "Reading named pipe from usearch: $dir/a\n";
 
-    # Load the first non-comment line from each stream
+  # Load the first non-comment line from each stream
     my $nextLineA;
-    while (<UCA>) {
-        if (/^\s*#/) { next; }
-        if (/^\s*$/) { next; }
-        $nextLineA = $_;
-        last;
+    my $pipeARetryCount = 0;
+    while ( !defined $nextLineA ) {
+        # keep trying to read from the pipe even if the writer disconnects
+        while (<UCA>) {
+            if (/^\s*#/) { next; }
+            if (/^\s*$/) { next; }
+            $nextLineA = $_;
+            last;
+        }
+        #print STDERR "Waiting for named pipe $dir/a\n";
+        sleep 1;
+        $pipeARetryCount++;
+        if($pipeARetryCount > 10) { die "Named pipe communication with usearch failed: $dir/a\n"; }
     }
 
     # read synchronized blocks from each stream
@@ -520,9 +538,8 @@ sub doSingleSearch {
             die "A TOOMANYHITS case can't turn into a NOHITS case";
         }
     }
-    
-    print STDERR
-        "doPairSearch $readAFile: Finished at pair threshold $singlePercentDifferenceThreshold and maxAccepts $maxAccepts\n";
+
+    print STDERR "doPairSearch $readAFile: Finished at pair threshold $singlePercentDifferenceThreshold and maxAccepts $maxAccepts\n";
     print STDERR "         NOHITS: " . scalar(@$nohitQueryIds) . "\n";
     print STDERR "    TOOMANYHITS: " . scalar(@$tooManyHitQueryIds) . "\n";
 
@@ -595,7 +612,32 @@ sub doPairSearch {
     my $dir = File::Temp->newdir();
     if ( system( 'mknod', "$dir/a", 'p' ) && system( 'mkfifo', "$dir/a" ) ) { die "mk{nod,fifo} $dir/a failed"; }
     if ( system( 'mknod', "$dir/b", 'p' ) && system( 'mkfifo', "$dir/b" ) ) { die "mk{nod,fifo} $dir/b failed"; }
+
+    # try to avoid mysterious intermittent condition where opening a named pipe blocks forever
+    #while ( !-p "$dir/a" ) {
+    #    print STDERR "Waiting for named pipe $dir/a\n";
+    #    sleep 1;
+    #}
+    #while ( !-p "$dir/b" ) {
+    #    print STDERR "Waiting for named pipe $dir/b\n";
+    #    sleep 1;
+    #}
+
     if ( !fork() ) {
+
+        # there is a mysterious intermittent condition where opening a named pipe blocks forever.
+        # I think what is happening may be:
+        # if the reader side of the named pipe is not already connected when usearch tries to write to it, usearch gets confused and never writes anything
+        # thus when the reader side does connect, it blocks.
+
+        # one hack is just to sleep here for a while in hopes that the reader thread gets all hooked up
+        # sleep 5;
+
+        # let's try writing to it, so we block here until we know it works, and then continue on to usearch
+        open( UCAW, ">$dir/a" ) || die("Couldn't write named pipe: $dir/a");
+        print UCAW "# pipe open!\n";
+        close UCAW;
+
         my $cmd =
 "$usearch --quiet --iddef 2 --query $readAFile --db $databaseFile --uc $dir/a --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject";
         print STDERR $cmd . "\n";
@@ -603,30 +645,52 @@ sub doPairSearch {
     }
 
     if ( !fork() ) {
+        open( UCBW, ">$dir/b" ) || die("Couldn't write named pipe: $dir/b");
+        print UCBW "# pipe open!\n";
+        close UCBW;
+
         my $cmd =
 "$usearch --quiet --iddef 2 --query $readBFile --db $databaseFile --uc $dir/b --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject";
         print STDERR $cmd . "\n";
         exec $cmd || die "can't fork usearch: $!";
     }
+    open( UCA, "$dir/a" ) || die("Couldn't read named pipe from usearch: $dir/a");
+    #print STDERR "Reading named pipe from usearch: $dir/a\n";
 
-    open( UCA, "$dir/a" );
-    open( UCB, "$dir/b" );
+    open( UCB, "$dir/b" ) || die("Couldn't read named pipe from usearch: $dir/b");
+    #print STDERR "Reading named pipe from usearch: $dir/b\n";
 
     # Load the first non-comment line from each stream
     my $nextLineA;
-    while (<UCA>) {
-        if (/^\s*#/) { next; }
-        if (/^\s*$/) { next; }
-        $nextLineA = $_;
-        last;
+    my $pipeARetryCount = 0;
+    while ( !defined $nextLineA ) {
+        # keep trying to read from the pipe even if the writer disconnects
+        while (<UCA>) {
+            if (/^\s*#/) { next; }
+            if (/^\s*$/) { next; }
+            $nextLineA = $_;
+            last;
+        }
+        #print STDERR "Waiting for named pipe $dir/a\n";
+        sleep 1;
+        $pipeARetryCount++;
+        if($pipeARetryCount > 10) { die "Named pipe communication with usearch failed: $dir/a\n"; }
     }
 
     my $nextLineB;
-    while (<UCB>) {
-        if (/^\s*#/) { next; }
-        if (/^\s*$/) { next; }
-        $nextLineB = $_;
-        last;
+    my $pipeBRetryCount = 0;
+    while ( !defined $nextLineB ) {
+        # keep trying to read from the pipe even if the writer disconnects
+        while (<UCB>) {
+            if (/^\s*#/) { next; }
+            if (/^\s*$/) { next; }
+            $nextLineB = $_;
+            last;
+        }
+        #print STDERR "Waiting for named pipe $dir/b\n";
+        sleep 1;
+        $pipeBRetryCount++;
+        if($pipeBRetryCount > 10) { die "Named pipe communication with usearch failed: $dir/b\n"; }
     }
 
     # read synchronized blocks from each stream
