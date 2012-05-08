@@ -13,7 +13,7 @@
 #
 # http://www.davidsoergel.com/rtax
 #
-# Version 0.97  (February 29, 2012)
+# Version 0.98  (May 7, 2012)
 #
 # For usage instructions: just run the script with no arguments
 #
@@ -141,7 +141,7 @@ David A. W. Soergel (1*), Rob Knight (2), and Steven E. Brenner (1)
 
 http://www.davidsoergel.com/rtax
 
-Version 0.97  (February 29, 2012)
+Version 0.98  (May 7, 2012)
 
 OPTIONS:
 
@@ -453,9 +453,9 @@ sub doSingleSearch {
     my $tooManyHitQueryIds = [];
 
 # open the USEARCH streams
-#  print STDERR "$usearch --quiet --iddef 2 --query $readAFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject\n";
+#  print STDERR "$usearch --quiet --global --iddef 2 --query $readAFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject\n";
 # open( UCA,
-# "$usearch --quiet --iddef 2 --query $readAFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject |"
+# "$usearch --quiet --global --iddef 2 --query $readAFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject |"
 #    ) || die "can't fork usearch: $!";
 
     my $dir = File::Temp->newdir();
@@ -468,7 +468,7 @@ sub doSingleSearch {
         close UCAW;
         
         my $cmd =
-"$usearch --quiet --iddef 2 --query $readAFile --db $databaseFile --uc $dir/a --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject";
+"$usearch --quiet --global --iddef 2 --query $readAFile --db $databaseFile --uc $dir/a --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject";
         print STDERR $cmd . "\n";
         exec $cmd || die "can't fork usearch: $!";
     }
@@ -596,17 +596,17 @@ sub doPairSearch {
 
 # open the USEARCH streams
 #    print STDERR
-#"$usearch --quiet --iddef 2 --query $readAFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject\n";
+#"$usearch --quiet --global --iddef 2 --query $readAFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject\n";
 
 #    open( UCA,
-#"$usearch --quiet --iddef 2 --query $readAFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject |"
+#"$usearch --quiet --global --iddef 2 --query $readAFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject |"
 #    ) || die "can't fork usearch: $!";
 
 #    print STDERR
-#"$usearch --quiet --iddef 2 --query $readBFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject\n";
+#"$usearch --quiet --global --iddef 2 --query $readBFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject\n";
 
 #    open( UCB,
-#"$usearch --quiet --iddef 2 --query $readBFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject |"
+#"$usearch --quiet --global --iddef 2 --query $readBFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject |"
 #    ) || die "can't fork usearch: $!";
 
     my $dir = File::Temp->newdir();
@@ -639,7 +639,7 @@ sub doPairSearch {
         close UCAW;
 
         my $cmd =
-"$usearch --quiet --iddef 2 --query $readAFile --db $databaseFile --uc $dir/a --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject";
+"$usearch --quiet --global --iddef 2 --query $readAFile --db $databaseFile --uc $dir/a --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject";
         print STDERR $cmd . "\n";
         exec $cmd || die "can't fork usearch: $!";
     }
@@ -650,7 +650,7 @@ sub doPairSearch {
         close UCBW;
 
         my $cmd =
-"$usearch --quiet --iddef 2 --query $readBFile --db $databaseFile --uc $dir/b --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject";
+"$usearch --quiet --global --iddef 2 --query $readBFile --db $databaseFile --uc $dir/b --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject";
         print STDERR $cmd . "\n";
         exec $cmd || die "can't fork usearch: $!";
     }
