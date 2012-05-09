@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # RTAX: Rapid and accurate taxonomic classification of short paired-end
 #       sequence reads from the 16S ribosomal RNA gene.
@@ -13,7 +13,7 @@
 #
 # http://www.davidsoergel.com/rtax
 #
-# Version 0.98  (May 7, 2012)
+# Version 0.981  (May 8, 2012)
 #
 # For usage instructions: just run the script with no arguments
 #
@@ -141,7 +141,7 @@ David A. W. Soergel (1*), Rob Knight (2), and Steven E. Brenner (1)
 
 http://www.davidsoergel.com/rtax
 
-Version 0.98  (May 7, 2012)
+Version 0.981  (May 8, 2012)
 
 OPTIONS:
 

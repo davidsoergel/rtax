@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # read a uclust result file; for each query sequence, collect the prokMSAids of the hits.
 

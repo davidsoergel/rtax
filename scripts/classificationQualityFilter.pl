@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 my $countThreshold               = $ARGV[0];
 my $localMinProportionThreshold  = $ARGV[1];

@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # read the prokMSAids of the hits, as produced by exactMatchIds.
 # Then grab the taxonomy info for those prokMSAids and make some classification info from the set.
