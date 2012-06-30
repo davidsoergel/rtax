@@ -654,7 +654,7 @@ sub doPairSearch {
         my $cmd =
 "$usearch --quiet --global --iddef 2 --query $readAFile --db $databaseFile --uc $dir/a --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject";
         print STDERR $cmd . "\n";
-        exec $cmd || die "can't fork usearch: $!";
+        exec $cmd || die("can't fork usearch: $!");
     }
 
     if ( !fork() ) {
@@ -665,7 +665,7 @@ sub doPairSearch {
         my $cmd =
 "$usearch --quiet --global --iddef 2 --query $readBFile --db $databaseFile --uc $dir/b --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject";
         print STDERR $cmd . "\n";
-        exec $cmd || die "can't fork usearch: $!";
+        exec $cmd || die("can't fork usearch: $!");
     }
     open( UCA, "$dir/a" ) || die("Couldn't read named pipe from usearch: $dir/a");
 
@@ -691,7 +691,7 @@ sub doPairSearch {
         #print STDERR "Waiting for named pipe $dir/a\n";
         sleep 1;
         $pipeARetryCount++;
-        if ( $pipeARetryCount > 10 ) { die "Named pipe communication with usearch failed: $dir/a\n"; }
+        if ( $pipeARetryCount > 10 ) { die("Named pipe communication with usearch failed: $dir/a\n"); }
     }
 
     my $nextLineB;
@@ -709,7 +709,7 @@ sub doPairSearch {
         #print STDERR "Waiting for named pipe $dir/b\n";
         sleep 1;
         $pipeBRetryCount++;
-        if ( $pipeBRetryCount > 10 ) { die "Named pipe communication with usearch failed: $dir/b\n"; }
+        if ( $pipeBRetryCount > 10 ) { die("Named pipe communication with usearch failed: $dir/b\n"); }
     }
 
     # read synchronized blocks from each stream
@@ -721,7 +721,7 @@ sub doPairSearch {
         ( $queryLabelB, $idsB, $nextLineB ) = collectIds( *UCB, $nextLineB );
 
         if ( !( $queryLabelA eq $queryLabelB ) ) {
-            die "Usearch results desynchronized: $queryLabelA neq $queryLabelB";
+            die("Usearch results desynchronized: $queryLabelA neq $queryLabelB");
         }
 
         my $numHitsA = ( scalar keys %$idsA );
@@ -778,7 +778,7 @@ sub doPairSearch {
                         push @$nohitQueryIds, $queryLabelA;
                     }
                 }
-                else { die "impossible"; }
+                else { die("impossible"); }
             }
             
             # if we're already at maxMaxAccepts, but not allowed to rely on the other read, just report TOOMANYHITS for the pair
@@ -788,7 +788,7 @@ sub doPairSearch {
         }
         if ( !$nextLineA || !$nextLineB ) {
             if ( !( !$nextLineA && !$nextLineB ) ) {
-                die "Usearch results desynchronized at end:\nA: $nextLineA\nB: $nextLineB";
+                die("Usearch results desynchronized at end:\nA: $nextLineA\nB: $nextLineB");
             }
             last;
         }
