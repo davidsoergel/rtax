@@ -13,7 +13,7 @@
 #
 # http://www.davidsoergel.com/rtax
 #
-# Version 0.981  (May 8, 2012)
+# Version 0.982-RC1  (June 30, 2012)
 #
 # For usage instructions: just run the script with no arguments
 #
@@ -69,6 +69,7 @@ use vars qw (
     $idRegex
     $idList
     $singleOK
+    $singleOKgeneric
 );
 
 # just store these as globals for now-- they're basically like command-line args
@@ -76,6 +77,8 @@ my $indexA;
 my $indexB;
 
 sub init {
+    $singleOKgeneric = 1;  # default value; GetOptions may override
+    
     Getopt::Long::Configure("bundling");
     GetOptions(
         "usearch=s"                       => \$usearch,
@@ -88,7 +91,8 @@ sub init {
         "queryA=s"                        => \$readAFileAll,
         "queryB=s"                        => \$readBFileAll,
         "idList=s"                        => \$idList,
-        "singleOK"                        => \$singleOK
+        "singleOK"                        => \$singleOK,
+        "singleOKgeneric!"                => \$singleOKgeneric
     );
 
     if (   !defined $databaseFile
@@ -141,7 +145,7 @@ David A. W. Soergel (1*), Rob Knight (2), and Steven E. Brenner (1)
 
 http://www.davidsoergel.com/rtax
 
-Version 0.981  (May 8, 2012)
+Version 0.982-RC1  (June 30, 2012)
 
 OPTIONS:
 
@@ -187,12 +191,19 @@ OPTIONS:
     --queryB <file>     A FASTA file containing the other set of query reads
                         (if any).
                         
-    --singleOK          Classify a sequence based on only one read.  Required
-                        when queryB is absent.  Default: sequences present in
-                        only one of the two input files are dropped.  When
-                        enabled, paired-end sequences are classified using
-                        both reads as usual, but any remaining single-ended
-                        reads are also classified.
+    --singleOK          Classify a sequence based on only one read when the
+                        other read is missing.  Required when queryB is absent.
+                        Default: false, so sequences present in only one of the
+                        two input files are dropped.  When enabled, paired-end
+                        sequences are classified using both reads as usual, but
+                        any remaining single-ended reads are also classified.
+                        
+    --singleOKgeneric   Classify a sequence based on only one read when the
+                        other read is present but uninformative.  This occurs
+                        when one read is so generic (i.e., short, or highly
+                        conserved) that more than maxMaxAccepts hits are
+                        found.  Default: true; use --nosingleOKgeneric to
+                        disable.
     
     --idRegex <regex>   A regular expression for extracting IDs from fasta
                         headers.  The first capture group (aka \$1) will be
@@ -379,7 +390,6 @@ sub processPairs {
     for my $queryLabel (@$tooManyHitQueryIds) {
         print "$queryLabel\t\tTOOMANYHITS\n";
     }
-
 }
 
 sub processSingle {
@@ -461,12 +471,12 @@ sub doSingleSearch {
     my $dir = File::Temp->newdir();
     if ( system( 'mknod', "$dir/a", 'p' ) && system( 'mkfifo', "$dir/a" ) ) { die "mk{nod,fifo} $dir/a failed"; }
     if ( !fork() ) {
-        
+
         # see paired end case for explanation
         open( UCAW, ">$dir/a" ) || die("Couldn't write named pipe: $dir/a");
         print UCAW "# pipe open!\n";
         close UCAW;
-        
+
         my $cmd =
 "$usearch --quiet --global --iddef 2 --query $readAFile --db $databaseFile --uc $dir/a --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject";
         print STDERR $cmd . "\n";
@@ -474,12 +484,14 @@ sub doSingleSearch {
     }
 
     open( UCA, "$dir/a" ) || die("Couldn't read named pipe from usearch: $dir/a");
+
     #print STDERR "Reading named pipe from usearch: $dir/a\n";
 
-  # Load the first non-comment line from each stream
+    # Load the first non-comment line from each stream
     my $nextLineA;
     my $pipeARetryCount = 0;
     while ( !defined $nextLineA ) {
+
         # keep trying to read from the pipe even if the writer disconnects
         while (<UCA>) {
             if (/^\s*#/) { next; }
@@ -487,10 +499,11 @@ sub doSingleSearch {
             $nextLineA = $_;
             last;
         }
+
         #print STDERR "Waiting for named pipe $dir/a\n";
         sleep 1;
         $pipeARetryCount++;
-        if($pipeARetryCount > 10) { die "Named pipe communication with usearch failed: $dir/a\n"; }
+        if ( $pipeARetryCount > 10 ) { die "Named pipe communication with usearch failed: $dir/a\n"; }
     }
 
     # read synchronized blocks from each stream
@@ -551,7 +564,7 @@ sub doSingleSearch {
 }
 
 sub reconcileSingleHitsAndPrint {
-    my ( $queryLabel, $idsA, $idsB, $singlePercentIdThreshold ) = @_;
+    my ( $queryLabel, $idsA, $singlePercentIdThreshold ) = @_;
 
     my $idsByIdentity = {};
     for my $targetLabel ( keys %$idsA ) {
@@ -625,10 +638,10 @@ sub doPairSearch {
 
     if ( !fork() ) {
 
-        # there is a mysterious intermittent condition where opening a named pipe blocks forever.
-        # I think what is happening may be:
-        # if the reader side of the named pipe is not already connected when usearch tries to write to it, usearch gets confused and never writes anything
-        # thus when the reader side does connect, it blocks.
+# there is a mysterious intermittent condition where opening a named pipe blocks forever.
+# I think what is happening may be:
+# if the reader side of the named pipe is not already connected when usearch tries to write to it, usearch gets confused and never writes anything
+# thus when the reader side does connect, it blocks.
 
         # one hack is just to sleep here for a while in hopes that the reader thread gets all hooked up
         # sleep 5;
@@ -655,15 +668,18 @@ sub doPairSearch {
         exec $cmd || die "can't fork usearch: $!";
     }
     open( UCA, "$dir/a" ) || die("Couldn't read named pipe from usearch: $dir/a");
+
     #print STDERR "Reading named pipe from usearch: $dir/a\n";
 
     open( UCB, "$dir/b" ) || die("Couldn't read named pipe from usearch: $dir/b");
+
     #print STDERR "Reading named pipe from usearch: $dir/b\n";
 
     # Load the first non-comment line from each stream
     my $nextLineA;
     my $pipeARetryCount = 0;
     while ( !defined $nextLineA ) {
+
         # keep trying to read from the pipe even if the writer disconnects
         while (<UCA>) {
             if (/^\s*#/) { next; }
@@ -671,15 +687,17 @@ sub doPairSearch {
             $nextLineA = $_;
             last;
         }
+
         #print STDERR "Waiting for named pipe $dir/a\n";
         sleep 1;
         $pipeARetryCount++;
-        if($pipeARetryCount > 10) { die "Named pipe communication with usearch failed: $dir/a\n"; }
+        if ( $pipeARetryCount > 10 ) { die "Named pipe communication with usearch failed: $dir/a\n"; }
     }
 
     my $nextLineB;
     my $pipeBRetryCount = 0;
     while ( !defined $nextLineB ) {
+
         # keep trying to read from the pipe even if the writer disconnects
         while (<UCB>) {
             if (/^\s*#/) { next; }
@@ -687,10 +705,11 @@ sub doPairSearch {
             $nextLineB = $_;
             last;
         }
+
         #print STDERR "Waiting for named pipe $dir/b\n";
         sleep 1;
         $pipeBRetryCount++;
-        if($pipeBRetryCount > 10) { die "Named pipe communication with usearch failed: $dir/b\n"; }
+        if ( $pipeBRetryCount > 10 ) { die "Named pipe communication with usearch failed: $dir/b\n"; }
     }
 
     # read synchronized blocks from each stream
@@ -729,25 +748,43 @@ sub doPairSearch {
             }
 
         }
+        
+        # if only one read got TOOMANYHITS...
+        
         else {
 
-            # if only one read got TOOMANYHITS, escalate if possible
+            # escalate if possible
             if ( $maxAccepts < $maxMaxAccepts ) {
                 push @$tooManyHitQueryIds, $queryLabelA;
             }
 
-            # but if only one read got TOOMANYHITS and we're already at maxMaxAccepts, fall back to the info provided by the other read.
-            elsif ( $numHitsA < $maxAccepts ) {
-                if ( !reconcileHitsAndPrint( $queryLabelA, $idsA, $idsA, $pairPercentIdThreshold ) ) {
-                    push @$nohitQueryIds, $queryLabelA;
+            # if we're already at maxMaxAccepts and we're allowed, fall back to the info provided by the other read.
+            
+            # This is a little tricky: which percent ID threshold do we use?
+            # For consistency, I think we have to assume that the overly generic read is a 100% match.
+            # the cleanest way to say this is to say that the "overly generic" read just matches everything, so
+            # reconcilePairHitsAndPrint( $queryLabelA, $idsA, $allIds, $pairPercentIdThreshold )
+            # but that would require a hash %allIds mapping every ID to 100, just because reconcilePairHitsAndPrint says $idsB->{$targetLabel}
+            # it's equivalent to just use reconcileSingleHitsAndPrint with singlePercentIdThreshold.
+            
+            elsif ($singleOKgeneric) {
+                if ( $numHitsA < $maxAccepts ) {
+                    if ( !reconcileSingleHitsAndPrint( $queryLabelA, $idsA, $singlePercentIdThreshold ) ) {
+                        push @$nohitQueryIds, $queryLabelA;
+                    }
                 }
-            }
-            elsif ( $numHitsB < $maxAccepts ) {
-                if ( !reconcileHitsAndPrint( $queryLabelA, $idsB, $idsB, $pairPercentIdThreshold ) ) {
-                    push @$nohitQueryIds, $queryLabelA;
+                elsif ( $numHitsB < $maxAccepts ) {
+                    if ( !reconcileSingleHitsAndPrint( $queryLabelA, $idsB, $singlePercentIdThreshold ) ) {
+                        push @$nohitQueryIds, $queryLabelA;
+                    }
                 }
+                else { die "impossible"; }
             }
-            else { die "impossible"; }
+            
+            # if we're already at maxMaxAccepts, but not allowed to rely on the other read, just report TOOMANYHITS for the pair
+            else {
+                push @$tooManyHitQueryIds, $queryLabelA;
+            }
         }
         if ( !$nextLineA || !$nextLineB ) {
             if ( !( !$nextLineA && !$nextLineB ) ) {

@@ -14,7 +14,7 @@ echoerr '2 Howard Hughes Medical Institute and Department of Chemistry '
 echoerr '  and Biochemistry, University of Colorado at Boulder'
 echoerr '* Corresponding author (current address): soergel@cs.umass.edu'
 echoerr ''
-echoerr 'Version 0.981  (May 8, 2012)'
+echoerr 'Version 0.982-RC1  (June 30, 2012)'
 echoerr ''
 echoerr 'http://dev.davidsoergel.com/rtax'
 echoerr ''
@@ -62,6 +62,7 @@ idRegexHelp="-i  regular expression used to select part of the fasta header to u
 outputHelp="-o  output path"
 tmpdirHelp="-m  temporary directory.  Will be removed on successful completion, but likely not if there is an error."
 fallbackHelp="-f  for sequences where only one read is available, fall back to single-ended classification.  Default: drop these sequences."
+noGenericFallbackHelp="-g  for sequences where one read is overly generic, do not fall back to single-ended classification.  Default: classify these sequences based on only the more specific read."
 badOptionHelp="Option not recognised"
 printHelpAndExit()
 {
@@ -75,6 +76,7 @@ printHelpAndExit()
 	echoerr "$delimiterHelp"
 	echoerr "$tmpdirHelp"
 	echoerr "$fallbackHelp"
+	echoerr "$noGenericFallbackHelp"
 	echoerr "$outputHelp"
 	exit $1
 }
@@ -96,10 +98,11 @@ idList=""
 idRegex=""
 verbose=""
 fallback=""
+noGenericFallback=""
 outpath=""
 tempdir=""
 
-while getopts "hr:t:a:b:i:l:d:m:o:v:f" optionName; do
+while getopts "hr:t:a:b:i:l:d:m:o:v:f:g" optionName; do
 case "$optionName" in
 h) printHelpAndExit 0;;
 r) refdb=`abspath "$OPTARG"`;;
@@ -113,6 +116,7 @@ o) outpath=`abspath "$OPTARG"`;;
 m) tempdir=`abspath "$OPTARG"`;;
 v) verbose="0";;
 f) fallback="--singleOK";;
+g) noGenericFallback="--nosingleOKgeneric";;
 [?]) printErrorHelpAndExit "$badOptionHelp";;
 esac
 done
@@ -132,6 +136,7 @@ echoerr Read delimiter     : $delimiter
 echoerr Output path        : $outpath
 echoerr Temporary dir      : $tempdir
 echoerr Fallback           : $fallback
+echoerr No Generic Fallback: $noGenericFallback
 echoerr
 fi
 
@@ -176,10 +181,10 @@ if [ $delimiter ]; then
     $scripts/splitDelimitedFasta.pl $delimiter $queryA
     queryAa=`basename $queryA`.a
     queryAb=`basename $queryA`.b
-    $scripts/rtaxSearch.pl --database $refdb --queryA $queryAa --queryB $queryAb --idList $idList --usearch $usearch --idRegex "$idRegex" $fallback > rawhits
+    $scripts/rtaxSearch.pl --database $refdb --queryA $queryAa --queryB $queryAb --idList $idList --usearch $usearch --idRegex "$idRegex" $fallback $noGenericFallback > rawhits
 else
     if [ $queryB ]; then
-        $scripts/rtaxSearch.pl --database $refdb --queryA $queryA --queryB $queryB --idList $idList --usearch $usearch --idRegex "$idRegex" $fallback > rawhits
+        $scripts/rtaxSearch.pl --database $refdb --queryA $queryA --queryB $queryB --idList $idList --usearch $usearch --idRegex "$idRegex" $fallback $noGenericFallback > rawhits
     else
         fallback="--singleOK"
         $scripts/rtaxSearch.pl --database $refdb --queryA $queryA --idList $idList --usearch $usearch --idRegex "$idRegex" $fallback > rawhits
