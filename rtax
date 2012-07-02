@@ -14,9 +14,14 @@ echoerr '2 Howard Hughes Medical Institute and Department of Chemistry '
 echoerr '  and Biochemistry, University of Colorado at Boulder'
 echoerr '* Corresponding author (current address): soergel@cs.umass.edu'
 echoerr ''
-echoerr 'Version 0.982-RC1  (June 30, 2012)'
+echoerr 'Version 0.982  (June 30, 2012)'
 echoerr ''
 echoerr 'http://dev.davidsoergel.com/rtax'
+echoerr ''
+echoerr 'Please cite:'
+echoerr 'Soergel D.A.W., Dey N., Knight R., and Brenner S.E.  2012.'
+ecoherr 'Selection of primers for optimal taxonomic classification of'
+echoerr 'environmental 16S rRNA gene sequences.  ISME J (6), 1440–1444'
 echoerr ''
 
 
@@ -30,6 +35,14 @@ arg=$0; [[ -L $0 ]] && arg=$(stat -f '%Y' "$0")
 pth=$(2>/dev/null cd "${arg%/*}" >&2; echo "`pwd -P`/${arg##*/}")
 par=$(dirname "$pth")
 scripts="$par/scripts"
+
+# The above solution works with the widespread GNU Coreutils 5.97.  Thanks to Bernd Brandt for this alternate solution for Coreutils 8.5.
+
+#IFS=$' \t\n'
+#arg=$0; [[ -L $0 ]] && arg=$(stat -c '%N' "$0") 
+#pth=${arg##*-> \`};
+#par=$(dirname "$pth")
+#scripts="$par/scripts"
 
 function abspath {
 	if [[ -d "$1" ]]

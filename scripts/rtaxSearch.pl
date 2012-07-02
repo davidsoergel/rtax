@@ -13,7 +13,7 @@
 #
 # http://www.davidsoergel.com/rtax
 #
-# Version 0.982-RC1  (June 30, 2012)
+# Version 0.982  (June 30, 2012)
 #
 # For usage instructions: just run the script with no arguments
 #
@@ -145,7 +145,7 @@ David A. W. Soergel (1*), Rob Knight (2), and Steven E. Brenner (1)
 
 http://www.davidsoergel.com/rtax
 
-Version 0.982-RC1  (June 30, 2012)
+Version 0.982  (June 30, 2012)
 
 OPTIONS:
 
