@@ -20,7 +20,7 @@ echoerr 'http://dev.davidsoergel.com/rtax'
 echoerr ''
 echoerr 'Please cite:'
 echoerr 'Soergel D.A.W., Dey N., Knight R., and Brenner S.E.  2012.'
-ecoherr 'Selection of primers for optimal taxonomic classification of'
+echoerr 'Selection of primers for optimal taxonomic classification of'
 echoerr 'environmental 16S rRNA gene sequences.  ISME J (6), 1440–1444'
 echoerr ''
 
