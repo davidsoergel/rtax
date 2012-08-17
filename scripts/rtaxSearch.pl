@@ -9,11 +9,11 @@
 #   University of California, Berkeley
 # 2 Howard Hughes Medical Institute and Department of Chemistry
 #   and Biochemistry, University of Colorado at Boulder
-# * Corresponding author: soergel@berkeley.edu
+# * Corresponding author: soergel@cs.umass.edu
 #
 # http://www.davidsoergel.com/rtax
 #
-# Version 0.982  (June 30, 2012)
+# Version 0.983-SNAPSHOT  (August 12, 2012)
 #
 # For usage instructions: just run the script with no arguments
 #
@@ -546,7 +546,7 @@ sub doSingleSearch {
         $readAFile = extractFasta( $indexA, $tooManyHitQueryIds );
 
         ( $nohitQueryIdsB, $tooManyHitQueryIds ) =
-            doSearch( scalar(@$tooManyHitQueryIds), $readAFile, $singlePercentDifferenceThreshold, $maxAccepts * 2 );
+            doSingleSearch( $readAFile, $singlePercentDifferenceThreshold, $maxAccepts * 2 );
         if (@$nohitQueryIdsB) {
             die "A TOOMANYHITS case can't turn into a NOHITS case";
         }
