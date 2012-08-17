@@ -14,7 +14,7 @@ echoerr '2 Howard Hughes Medical Institute and Department of Chemistry '
 echoerr '  and Biochemistry, University of Colorado at Boulder'
 echoerr '* Corresponding author (current address): soergel@cs.umass.edu'
 echoerr ''
-echoerr 'Version 0.982  (June 30, 2012)'
+echoerr 'Version 0.983-SNAPSHOT  (August 16, 2012)'
 echoerr ''
 echoerr 'http://dev.davidsoergel.com/rtax'
 echoerr ''
@@ -189,18 +189,22 @@ cd $tempdir
 
 # perform the search
 
+if [ $idList ]; then
+	idList="--idList $idList"
+fi
+
 
 if [ $delimiter ]; then
     $scripts/splitDelimitedFasta.pl $delimiter $queryA
     queryAa=`basename $queryA`.a
     queryAb=`basename $queryA`.b
-    $scripts/rtaxSearch.pl --database $refdb --queryA $queryAa --queryB $queryAb --idList $idList --usearch $usearch --idRegex "$idRegex" $fallback $noGenericFallback > rawhits
+    $scripts/rtaxSearch.pl --database $refdb --queryA $queryAa --queryB $queryAb $idList --usearch $usearch --idRegex "$idRegex" $fallback $noGenericFallback > rawhits
 else
     if [ $queryB ]; then
-        $scripts/rtaxSearch.pl --database $refdb --queryA $queryA --queryB $queryB --idList $idList --usearch $usearch --idRegex "$idRegex" $fallback $noGenericFallback > rawhits
+        $scripts/rtaxSearch.pl --database $refdb --queryA $queryA --queryB $queryB $idList --usearch $usearch --idRegex "$idRegex" $fallback $noGenericFallback > rawhits
     else
         fallback="--singleOK"
-        $scripts/rtaxSearch.pl --database $refdb --queryA $queryA --idList $idList --usearch $usearch --idRegex "$idRegex" $fallback > rawhits
+        $scripts/rtaxSearch.pl --database $refdb --queryA $queryA $idList --usearch $usearch --idRegex "$idRegex" $fallback > rawhits
     fi
 fi
 
