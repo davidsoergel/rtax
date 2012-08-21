@@ -1031,7 +1031,7 @@ sub revcompFile {
     my $outfile = $infile . ".rc";
 
     open( IN,  $infile )     or die "Can't read $infile\n";
-    open( OUT, ">$outfile" ) or die "Can't write $outfilefile\n";
+    open( OUT, ">$outfile" ) or die "Can't write $outfile\n";
 
     while (<IN>) {
         my $a = $_;
