@@ -99,11 +99,11 @@ sub processHits {
 			print "$label\t\tNOHIT\n";
             $nohit++;
 		}
-		#elsif($ids[0] eq "NOHIT")     # this does not happen; use an empty id list instead up to this point
-        #{
-        #    print "$label\tNOHIT\n";
-        #    $nohit++;
-        #}
+		elsif($ids[0] eq "NOHIT")     # at one point we represented this only as an empty id list, but now apparently it is used
+        {
+            print "$label\t\tNOHIT\n";
+            $nohit++;
+        }
         elsif ( ( $ids[0] eq "NOPRIMER" ) ) {
             print "$label\t\tNOPRIMER\n";
             $noprimer++;

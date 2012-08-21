@@ -114,7 +114,7 @@ sub fetch {
 	my ($this, $id) = @_;
     
     my $pos = $this->startpos()->{$id};
-    if(! defined $pos) { die "no sequence with id: $id"; }
+    if(! defined $pos) { die "no sequence with id: $id in " . $this->fastaFileName(); }
     
     my $numlines = $this->lines()->{$id};
     

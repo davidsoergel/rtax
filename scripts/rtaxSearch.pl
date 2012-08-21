@@ -253,8 +253,8 @@ sub main {
     processPairs( $pairedReadAFile, $pairedReadBFile, $pairedBothCount );
 
     if ($singleOK) {
-        processSingle( $singleReadAFile, $singleReadACount );
-        processSingle( $singleReadBFile, $singleReadBCount );
+        processSingle( $singleReadAFile, $indexA, $singleReadACount );
+        processSingle( $singleReadBFile, $indexB, $singleReadBCount );
     }
 }
 
@@ -393,7 +393,7 @@ sub processPairs {
 }
 
 sub processSingle {
-    my ( $singleReadFile, $singleReadCount ) = @_;
+    my ( $singleReadFile, $singleIndex, $singleReadCount ) = @_;
     if ( !defined $singleReadFile || $singleReadFile eq "" || $singleReadCount == 0 ) { return; }
 
     my $nohitQueryIds = [];
@@ -413,7 +413,7 @@ sub processSingle {
         if ( $nohitQueryIds->[0] ne "ALL" ) {
 
             # prepare input files with the remaining sequences
-            $singleReadFile = extractFasta( $indexA, $nohitQueryIds );
+            $singleReadFile = extractFasta( $singleIndex, $nohitQueryIds );
         }
 
         my $numRemaining = ( $nohitQueryIds->[0] eq "ALL" ) ? $singleReadCount : scalar(@$nohitQueryIds);
@@ -429,7 +429,7 @@ sub processSingle {
             . $minMaxAccepts . "\n";
 
         ( $nohitQueryIds, $tooManyHitQueryIdsThisRound ) =
-            doSingleSearch( $singleReadFile, $singlePercentDifferenceThreshold, $minMaxAccepts );
+            doSingleSearch( $singleReadFile, $singleIndex, $singlePercentDifferenceThreshold, $minMaxAccepts );
 
         print STDERR "Finished round at threshold $singlePercentDifferenceThreshold; "
             . scalar(@$nohitQueryIds)
@@ -453,7 +453,8 @@ sub processSingle {
 }
 
 sub doSingleSearch {
-    my $readAFile                        = shift;
+    my $singleReadFile                        = shift;
+	my $singleIndex = shift;
     my $singlePercentDifferenceThreshold = shift;
     my $maxAccepts                       = shift;
 
@@ -463,9 +464,9 @@ sub doSingleSearch {
     my $tooManyHitQueryIds = [];
 
 # open the USEARCH streams
-#  print STDERR "$usearch --quiet --global --iddef 2 --query $readAFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject\n";
+#  print STDERR "$usearch --quiet --global --iddef 2 --query $singleReadFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject\n";
 # open( UCA,
-# "$usearch --quiet --global --iddef 2 --query $readAFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject |"
+# "$usearch --quiet --global --iddef 2 --query $singleReadFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject |"
 #    ) || die "can't fork usearch: $!";
 
     my $dir = File::Temp->newdir();
@@ -478,7 +479,7 @@ sub doSingleSearch {
         close UCAW;
 
         my $cmd =
-"$usearch --quiet --global --iddef 2 --query $readAFile --db $databaseFile --uc $dir/a --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject";
+"$usearch --quiet --global --iddef 2 --query $singleReadFile --db $databaseFile --uc $dir/a --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject";
         print STDERR $cmd . "\n";
         exec $cmd || die "can't fork usearch: $!";
     }
@@ -543,16 +544,16 @@ sub doSingleSearch {
         print STDERR "Escalating maxAccepts to " . ( $maxAccepts * 2 ) . " for " . scalar(@$tooManyHitQueryIds) . " sequences.\n";
 
         # prepare input files with the remaining sequences
-        $readAFile = extractFasta( $indexA, $tooManyHitQueryIds );
+        $singleReadFile = extractFasta( $singleIndex, $tooManyHitQueryIds );
 
         ( $nohitQueryIdsB, $tooManyHitQueryIds ) =
-            doSingleSearch( $readAFile, $singlePercentDifferenceThreshold, $maxAccepts * 2 );
+            doSingleSearch( $singleReadFile, $singleIndex, $singlePercentDifferenceThreshold, $maxAccepts * 2 );
         if (@$nohitQueryIdsB) {
             die "A TOOMANYHITS case can't turn into a NOHITS case";
         }
     }
 
-    print STDERR "doPairSearch $readAFile: Finished at pair threshold $singlePercentDifferenceThreshold and maxAccepts $maxAccepts\n";
+    print STDERR "doSingleSearch $singleReadFile: Finished at pair threshold $singlePercentDifferenceThreshold and maxAccepts $maxAccepts\n";
     print STDERR "         NOHITS: " . scalar(@$nohitQueryIds) . "\n";
     print STDERR "    TOOMANYHITS: " . scalar(@$tooManyHitQueryIds) . "\n";
 
