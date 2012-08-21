@@ -118,7 +118,7 @@ noGenericFallback=""
 outpath=""
 tempdir=""
 
-while getopts "hr:t:a:b:c:i:l:d:m:o:v:fg" optionName; do
+while getopts "hr:t:a:b:i:l:d:m:o:v:fgc" optionName; do
 case "$optionName" in
 h) printHelpAndExit 0;;
 r) refdb=`abspath "$OPTARG"`;;
