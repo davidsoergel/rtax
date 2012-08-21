@@ -85,7 +85,7 @@ printHelpAndExit()
 	echoerr "$taxonomyHelp"
 	echoerr "$queryAHelp"
 	echoerr "$queryBHelp"
-	echoerr "$revcompHelp"
+	echoerr "$revcompBHelp"
 	echoerr "$idRegexHelp"
 	echoerr "$idListHelp"
 	echoerr "$delimiterHelp"
