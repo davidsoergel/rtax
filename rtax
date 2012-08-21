@@ -214,7 +214,7 @@ else
         $scripts/rtaxSearch.pl --database $refdb --queryA $queryA --queryB $queryB $idList $revcompA $revcompB --usearch $usearch --idRegex "$idRegex" $fallback $noGenericFallback > rawhits
     else
         fallback="--singleOK"
-        $scripts/rtaxSearch.pl --database $refdb --queryA $queryA $idList --usearch $usearch --idRegex "$idRegex" $fallback > rawhits
+        $scripts/rtaxSearch.pl --database $refdb --queryA $queryA $idList $revcompA --usearch $usearch --idRegex "$idRegex" $fallback > rawhits
     fi
 fi
 
