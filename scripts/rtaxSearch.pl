@@ -66,6 +66,7 @@ use vars qw (
     $databaseFile
     $readAFileAll
     $readBFileAll
+    $revCompReadA
     $revCompReadB
     $idRegex
     $idList
@@ -91,6 +92,7 @@ sub init {
         "idRegex=s"                       => \$idRegex,
         "queryA=s"                        => \$readAFileAll,
         "queryB=s"                        => \$readBFileAll,
+        "revcompA"                        => \$revCompReadA,
         "revcompB"                        => \$revCompReadB,
         "idList=s"                        => \$idList,
         "singleOK"                        => \$singleOK,
@@ -125,6 +127,9 @@ sub init {
     # these are redundant between multiple runs, oh well
     # but the DBM indexes should persist, in the same directory as the original files
     $indexA = FastaIndex->new();    # '-filename' => "A.idx", '-write_flag' => 1 );
+if ($revCompReadA) {
+            $readAFileAll = revcompFile($readAFileAll);
+        }
     $indexA->make_index( $readAFileAll, $idRegex, $readAFileAll );
 
     $indexB = FastaIndex->new();

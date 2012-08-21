@@ -68,8 +68,9 @@ usageHelp="Usage: ${0##*/} -r <refdb> -t <taxonomy> -a <queryA> -b <queryB> -d <
 refdbHelp="-r  reference database in FASTA format"
 taxonomyHelp="-t  taxonomy file with sequence IDs matching the reference database"
 queryAHelp="-a  FASTA file containing query sequences (single-ended or read 1)"
-queryBHelp="-b  FASTA file containing query sequences (read b, with matching IDs.  Must be provided in the forward sense unless -c is used.)"
-revcompBHelp="-c  Reverse-complement query B sequences (required if they are provided in the reverse sense)."
+queryBHelp="-b  FASTA file containing query sequences (read b, with matching IDs)"
+revcompAHelp="-x  Reverse-complement query A sequences (required if they are provided in the reverse sense)"
+revcompBHelp="-y  Reverse-complement query B sequences (required if they are provided in the reverse sense)"
 idListHelp="-l  text file containing sequence IDs to process, one per line"
 delimiterHelp="-d  delimiter separating the two reads when provided in a single file"
 idRegexHelp="-i  regular expression used to select part of the fasta header to use as the sequence id.  Default: \"(\\\\S+)\""
@@ -85,6 +86,7 @@ printHelpAndExit()
 	echoerr "$taxonomyHelp"
 	echoerr "$queryAHelp"
 	echoerr "$queryBHelp"
+	echoerr "$revcompAHelp"
 	echoerr "$revcompBHelp"
 	echoerr "$idRegexHelp"
 	echoerr "$idListHelp"
@@ -108,6 +110,7 @@ refdb=""
 taxonomy=""
 queryA=""
 queryB=""
+revcompA=""
 revcompB=""
 delimiter=""
 idList=""
@@ -125,7 +128,8 @@ r) refdb=`abspath "$OPTARG"`;;
 t) taxonomy=`abspath "$OPTARG"`;;
 a) queryA=`abspath "$OPTARG"`;;
 b) queryB=`abspath "$OPTARG"`;;
-c) revcompB="--revcompB";;
+x) revcompA="--revcompA";;
+y) revcompB="--revcompB";;
 d) delimiter="$OPTARG";;
 i) idRegex="$OPTARG";;
 l) idList=`abspath "$OPTARG"`;;
@@ -147,6 +151,7 @@ echoerr Reference database : $refdb
 echoerr Taxonomy file      : $taxonomy
 echoerr ID List            : $idList
 echoerr Query read A       : $queryA
+echoerr RevComp read A     : $revcompA
 echoerr Query read B       : $queryB
 echoerr RevComp read B     : $revcompB
 # echoerr Header Regex : $idRegex
@@ -203,10 +208,10 @@ if [ $delimiter ]; then
     $scripts/splitDelimitedFasta.pl $delimiter $queryA
     queryAa=`basename $queryA`.a
     queryAb=`basename $queryA`.b
-    $scripts/rtaxSearch.pl --database $refdb --queryA $queryAa --queryB $queryAb $idList $revcompB --usearch $usearch --idRegex "$idRegex" $fallback $noGenericFallback > rawhits
+    $scripts/rtaxSearch.pl --database $refdb --queryA $queryAa --queryB $queryAb $idList $revcompA $revcompB --usearch $usearch --idRegex "$idRegex" $fallback $noGenericFallback > rawhits
 else
     if [ $queryB ]; then
-        $scripts/rtaxSearch.pl --database $refdb --queryA $queryA --queryB $queryB $idList $revcompB --usearch $usearch --idRegex "$idRegex" $fallback $noGenericFallback > rawhits
+        $scripts/rtaxSearch.pl --database $refdb --queryA $queryA --queryB $queryB $idList $revcompA $revcompB --usearch $usearch --idRegex "$idRegex" $fallback $noGenericFallback > rawhits
     else
         fallback="--singleOK"
         $scripts/rtaxSearch.pl --database $refdb --queryA $queryA $idList --usearch $usearch --idRegex "$idRegex" $fallback > rawhits

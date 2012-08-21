@@ -78,7 +78,7 @@ and so forth) are handled via the -i option.
 
 RTAX considers query sequences in the forward sense with respect to the
 reference database.  Thus, in a paired-end experiment, the reverse reads will
-likely need be reverse-complemented with the -c option.
+likely need be reverse-complemented with the -y option.
 
 RTAX may be run for single-ended reads as well; simply exclude the queryB
 parameter in this case.
