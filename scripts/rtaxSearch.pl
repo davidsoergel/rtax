@@ -13,7 +13,7 @@
 #
 # http://www.davidsoergel.com/rtax
 #
-# Version 0.983-SNAPSHOT  (August 12, 2012)
+# Version 0.983-SNAPSHOT  (August 21, 2012)
 #
 # For usage instructions: just run the script with no arguments
 #
@@ -66,6 +66,7 @@ use vars qw (
     $databaseFile
     $readAFileAll
     $readBFileAll
+    $revCompReadB
     $idRegex
     $idList
     $singleOK
@@ -77,8 +78,8 @@ my $indexA;
 my $indexB;
 
 sub init {
-    $singleOKgeneric = 1;  # default value; GetOptions may override
-    
+    $singleOKgeneric = 1;    # default value; GetOptions may override
+
     Getopt::Long::Configure("bundling");
     GetOptions(
         "usearch=s"                       => \$usearch,
@@ -90,6 +91,7 @@ sub init {
         "idRegex=s"                       => \$idRegex,
         "queryA=s"                        => \$readAFileAll,
         "queryB=s"                        => \$readBFileAll,
+        "revcompB"                        => \$revCompReadB,
         "idList=s"                        => \$idList,
         "singleOK"                        => \$singleOK,
         "singleOKgeneric!"                => \$singleOKgeneric
@@ -127,6 +129,9 @@ sub init {
 
     $indexB = FastaIndex->new();
     if ( defined $readBFileAll ) {    # '-filename' => "B.idx", '-write_flag' => 1 );
+        if ($revCompReadB) {
+            $readBFileAll = revcompFile($readBFileAll);
+        }
         $indexB->make_index( $readBFileAll, $idRegex, $readBFileAll );
     }
 }
@@ -145,7 +150,7 @@ David A. W. Soergel (1*), Rob Knight (2), and Steven E. Brenner (1)
 
 http://www.davidsoergel.com/rtax
 
-Version 0.982  (June 30, 2012)
+Version 0.983-SNAPSHOT  (August 21, 2012)
 
 OPTIONS:
 
@@ -189,7 +194,12 @@ OPTIONS:
     --queryA <file>     A FASTA file containing one set of query reads.
     
     --queryB <file>     A FASTA file containing the other set of query reads
-                        (if any).
+                        (if any).  Must be provided in the forward sense
+                        unless --revcompB is used.
+
+    --revcompB          Reverse-complement read B.  Required if the queryB file
+                        is provided in the reverse sense, as is typical with
+                        paired-end experiments.
                         
     --singleOK          Classify a sequence based on only one read when the
                         other read is missing.  Required when queryB is absent.
@@ -453,8 +463,8 @@ sub processSingle {
 }
 
 sub doSingleSearch {
-    my $singleReadFile                        = shift;
-	my $singleIndex = shift;
+    my $singleReadFile                   = shift;
+    my $singleIndex                      = shift;
     my $singlePercentDifferenceThreshold = shift;
     my $maxAccepts                       = shift;
 
@@ -553,7 +563,8 @@ sub doSingleSearch {
         }
     }
 
-    print STDERR "doSingleSearch $singleReadFile: Finished at pair threshold $singlePercentDifferenceThreshold and maxAccepts $maxAccepts\n";
+    print STDERR
+        "doSingleSearch $singleReadFile: Finished at pair threshold $singlePercentDifferenceThreshold and maxAccepts $maxAccepts\n";
     print STDERR "         NOHITS: " . scalar(@$nohitQueryIds) . "\n";
     print STDERR "    TOOMANYHITS: " . scalar(@$tooManyHitQueryIds) . "\n";
 
@@ -749,9 +760,9 @@ sub doPairSearch {
             }
 
         }
-        
+
         # if only one read got TOOMANYHITS...
-        
+
         else {
 
             # escalate if possible
@@ -760,14 +771,14 @@ sub doPairSearch {
             }
 
             # if we're already at maxMaxAccepts and we're allowed, fall back to the info provided by the other read.
-            
-            # This is a little tricky: which percent ID threshold do we use?
-            # For consistency, I think we have to assume that the overly generic read is a 100% match.
-            # the cleanest way to say this is to say that the "overly generic" read just matches everything, so
-            # reconcilePairHitsAndPrint( $queryLabelA, $idsA, $allIds, $pairPercentIdThreshold )
-            # but that would require a hash %allIds mapping every ID to 100, just because reconcilePairHitsAndPrint says $idsB->{$targetLabel}
-            # it's equivalent to just use reconcileSingleHitsAndPrint with singlePercentIdThreshold.
-            
+
+          # This is a little tricky: which percent ID threshold do we use?
+          # For consistency, I think we have to assume that the overly generic read is a 100% match.
+          # the cleanest way to say this is to say that the "overly generic" read just matches everything, so
+          # reconcilePairHitsAndPrint( $queryLabelA, $idsA, $allIds, $pairPercentIdThreshold )
+          # but that would require a hash %allIds mapping every ID to 100, just because reconcilePairHitsAndPrint says $idsB->{$targetLabel}
+          # it's equivalent to just use reconcileSingleHitsAndPrint with singlePercentIdThreshold.
+
             elsif ($singleOKgeneric) {
                 if ( $numHitsA < $maxAccepts ) {
                     if ( !reconcileSingleHitsAndPrint( $queryLabelA, $idsA, $singlePercentIdThreshold ) ) {
@@ -781,7 +792,7 @@ sub doPairSearch {
                 }
                 else { die("impossible"); }
             }
-            
+
             # if we're already at maxMaxAccepts, but not allowed to rely on the other read, just report TOOMANYHITS for the pair
             else {
                 push @$tooManyHitQueryIds, $queryLabelA;
@@ -1012,6 +1023,28 @@ sub printLine {
     print "$label\t$bestPcid\t" . $idString . "\n";
 
     # print STDERR "$label\t$bestPcid\t" . $idString . "\n";
+}
+
+sub revcompFile {
+    my $infile = shift;
+
+    my $outfile = $infile . ".rc";
+
+    open( IN,  $infile )     or die "Can't read $infile\n";
+    open( OUT, ">$outfile" ) or die "Can't write $outfilefile\n";
+
+    while (<IN>) {
+        my $a = $_;
+        chomp $a;
+        if ( !( $a =~ /^>/ ) ) {
+            $a = reverse $a;
+            $a =~ tr/ACGTacgt/TGCAtgca/;
+        }
+        print OUT $a . "\n";
+    }
+    close IN;
+    close OUT;
+    return $outfile;
 }
 
 main();
