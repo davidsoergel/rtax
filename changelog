@@ -1,0 +1,53 @@
+Version 0.983  (2012-09-05)
+===========================
+
+* add options -x and -y to reverse-complement reads 1 and 2, respectively
+* fixed completely broken fallback to single-ended classification, and miscounting of NOHIT cases
+* fix idList command-line parsing bug
+
+
+Version 0.982  (2012-07-02)
+===========================
+
+* getopts bug fix
+* try to fix issues with TOOMANYHITS cases
+
+
+Version 0.981  (2012-05-08)
+===========================
+
+* change all references to "/usr/bin/perl" to "/usr/bin/env perl" for wider compatibility
+
+
+Version 0.98  (2012-05-07)
+==========================
+
+* insured global alignment with iddef 2, i.e. ignoring terminal gaps in computing percent identity, which was the intention all along
+* Fix intermittent hanging due to squirrely interaction of usearch with named pipes
+
+
+Version 0.96  (2012-03-01)
+==========================
+
+* Make fallback optional. Store FASTA indexes as DBM. Add fastaidx tool
+* Combined pair + single script with fallback
+
+
+Version 0.94  (2012-01-12)
+==========================
+
+* add tempdir option
+* add idList option
+* add id regex option
+
+
+Version 0.93 (2012-01-09)
+=========================
+
+* Ditch Bio::Index::Fasta
+
+
+Version 0.92 (2011-12-28)
+=========================
+
+* Prep Qiime integration 
