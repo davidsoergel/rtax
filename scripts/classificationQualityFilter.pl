@@ -14,6 +14,9 @@ while (<STDIN>) {
     elsif ( $taxonomyEntries[0] eq "NOHIT" ) {
         print "$id\t\tNOHIT\n";
     }
+    elsif ( $taxonomyEntries[0] eq "NOMATEPAIR" ) {
+        print "$id\t\tNOMATEPAIR\n";
+    }
 	elsif ( $taxonomyEntries[0] =~ /TOOMANYHITS/ ) {
 	    print "$id\t\tTOOMANYHITS\n";
 	}

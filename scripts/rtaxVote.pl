@@ -88,6 +88,7 @@ sub processHits {
     my $noprimer     = 0;
     my $nohit        = 0;
     my $toomanyhits  = 0;
+    my $nomatepair  = 0;
     my $unclassified = 0;
 
     while (<HITS>) {
@@ -112,19 +113,24 @@ sub processHits {
             print "$label\t\tTOOMANYHITS\n";
             $toomanyhits++;
         }
+        elsif ( ( $ids[0] eq "NOMATEPAIR" ) ) {
+            print "$label\t\tNOMATEPAIR\n";
+            $nomatepair++;
+        }
         else {
             $unclassified += printLine( $label, $bestPcid, @ids );
             $hit++;
         }
     }
 
-    my $samples = $hit + $nohit + $toomanyhits + $noprimer;
+    my $samples = $hit + $nohit + $toomanyhits + $nomatepair + $noprimer;
 
     print STDERR "$samples items\n";
     if ( $samples != 0 ) {
         print STDERR "$noprimer (" . sprintf( "%.1f",     ( 100 * $noprimer / $samples ) ) . "%) had no primer match\n";
         print STDERR "$nohit (" . sprintf( "%.1f",        ( 100 * $nohit / $samples ) ) . "%) had no hits\n";
         print STDERR "$toomanyhits (" . sprintf( "%.1f",        ( 100 * $toomanyhits / $samples ) ) . "%) had too many hits\n";
+        print STDERR "$nomatepair (" . sprintf( "%.1f",        ( 100 * $nomatepair / $samples ) ) . "%) had no mate pair\n";
         print STDERR "$unclassified (" . sprintf( "%.1f", ( 100 * $unclassified / $samples ) ) . "%) had hits but no classification\n";
         print STDERR "" . ( $hit - $unclassified ) . " (" . sprintf( "%.1f",          ( 100 * ( $hit - $unclassified ) / $samples ) ) . "%) were classified\n";
     }

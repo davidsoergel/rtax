@@ -13,7 +13,7 @@
 #
 # http://www.davidsoergel.com/rtax
 #
-# Version 0.983  (August 21, 2012)
+# Version 0.984  (August 7, 2013)
 #
 # For usage instructions: just run the script with no arguments
 #
@@ -49,7 +49,7 @@
 use strict;
 use warnings;
 use Getopt::Long;
-use File::Temp;
+use File::Temp qw/ tempdir /;
 
 use FindBin;
 use lib "$FindBin::Bin";
@@ -262,7 +262,7 @@ sub main {
 
     init();
 
-    my ( $pairedReadAFile, $pairedReadBFile, $pairedBothCount, $singleReadAFile, $singleReadACount, $singleReadBFile, $singleReadBCount ) =
+    my ( $pairedReadAFile, $pairedReadBFile, $pairedBothCount, $singleReadAFile, $singleReadACount, $singleReadBFile, $singleReadBCount, $allSingleIDs ) =
         partitionReadFiles();
 
     processPairs( $pairedReadAFile, $pairedReadBFile, $pairedBothCount );
@@ -271,6 +271,11 @@ sub main {
         processSingle( $singleReadAFile, $indexA, $singleReadACount );
         processSingle( $singleReadBFile, $indexB, $singleReadBCount );
     }
+	else {
+		for my $queryLabel (@$allSingleIDs) {
+        	print "$queryLabel\t\tNOMATEPAIR\n";
+    	}
+	}
 }
 
 sub partitionReadFiles {
@@ -343,7 +348,9 @@ sub partitionReadFiles {
     my $singleReadAFile = extractFasta( $indexA, \@aOnly );
     my $singleReadBFile = extractFasta( $indexB, \@bOnly );
 
-    return ( $pairedReadAFile, $pairedReadBFile, scalar(@bothAandB), $singleReadAFile, scalar(@aOnly), $singleReadBFile, scalar(@bOnly) );
+	my @allSingleIDs = (@aOnly, @bOnly);
+
+    return ( $pairedReadAFile, $pairedReadBFile, scalar(@bothAandB), $singleReadAFile, scalar(@aOnly), $singleReadBFile, scalar(@bOnly), \@allSingleIDs );
 }
 
 sub processPairs {
@@ -484,7 +491,7 @@ sub doSingleSearch {
 # "$usearch --quiet --global --iddef 2 --query $singleReadFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject |"
 #    ) || die "can't fork usearch: $!";
 
-    my $dir = File::Temp->newdir();
+    my $dir = tempdir(CLEANUP => 1);
     if ( system( 'mknod', "$dir/a", 'p' ) && system( 'mkfifo', "$dir/a" ) ) { die "mk{nod,fifo} $dir/a failed"; }
     if ( !fork() ) {
 
@@ -639,7 +646,7 @@ sub doPairSearch {
 #"$usearch --quiet --global --iddef 2 --query $readBFile --db $databaseFile --uc /dev/stdout --id $singlePercentIdThreshold --maxaccepts $maxAccepts --maxrejects 128 --nowordcountreject |"
 #    ) || die "can't fork usearch: $!";
 
-    my $dir = File::Temp->newdir();
+    my $dir = tempdir(CLEANUP => 1);
     if ( system( 'mknod', "$dir/a", 'p' ) && system( 'mkfifo', "$dir/a" ) ) { die "mk{nod,fifo} $dir/a failed"; }
     if ( system( 'mknod', "$dir/b", 'p' ) && system( 'mkfifo', "$dir/b" ) ) { die "mk{nod,fifo} $dir/b failed"; }
 
