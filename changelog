@@ -1,3 +1,11 @@
+Version 0.984  (2013-08-07)
+===========================
+
+* Fix tempdir calls for wider compatibility.
+* Add NOMATEPAIR classification when --single_ok is not selected, so that every input line gets an output line.
+
+
+
 Version 0.983  (2012-09-05)
 ===========================
 
