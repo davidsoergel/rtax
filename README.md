@@ -16,16 +16,15 @@ Download
 --------
 
 [rtax-0.984.tgz](http://static.davidsoergel.com/rtax-0.984.tgz) (23 KB)  _August 7, 2013_
-[change log](http://hg.davidsoergel.com/rtax/src/tip/changelog)
+[change log](changelog)
 
 [rtax.greengenes.20110311.tgz](http://static.davidsoergel.com/rtax.greengenes.20110311.tgz) (49 MB)  ''March 11, 2011''
 
 Citation
 --------
 
-```
-Soergel DAW, Dey N, Knight R, Brenner SE. (2012). [http://www.nature.com/ismej/journal/vaop/ncurrent/abs/ismej2011208a.html Selection of primers for optimal taxonomic classification of environmental 16S rRNA gene sequences].  ISME J (6), 1440–1444
-```
+Soergel DAW, Dey N, Knight R, Brenner SE. (2012). [Selection of primers for optimal taxonomic classification of environmental 16S rRNA gene sequences](http://www.nature.com/ismej/journal/vaop/ncurrent/abs/ismej2011208a.html).  ISME J (6), 1440–1444
+
 
 Use within QIIME
 ----------------
