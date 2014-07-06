@@ -10,7 +10,7 @@ David A. W. Soergel (1*), Rob Knight (2), and Steven E. Brenner (1)
 1 Department of Plant and Microbial Biology, University of California, Berkeley 
 2 Howard Hughes Medical Institute and Department of Chemistry and Biochemistry, University of Colorado at Boulder
 
-`*` Corresponding author (current address): [soergel@cs.umass.edu](mailto:soergel@cs.umass.edu)
+\* Corresponding author (current address): [soergel@cs.umass.edu](mailto:soergel@cs.umass.edu)
 
 Download
 --------
@@ -42,18 +42,7 @@ Requirements
 
     Two files are needed:
     1. a FASTA file containing the sequences, and 
-    2. a file listing taxonomy strings for each sequence ID found in the FASTA file.  The format of this file is
-```
-sequenceid	pcidwidth	kingdom; phylum; class; order; ...
-```
-         one entry per line, where sequenceid, pcidwidth, and the taxonomy
-         string are separated by a single tab, and the taxonomy string itself is
-         delimited either by semicolons or by tabs.  The pcidwidth column is
-         optional, and (if present) is ignored in the current version of RTAX
-         anyway.  (In our usage, we cluster the reference database into 99% id
-         OTUs, representing each by a single "seed" sequence.  This column then
-         lists the largest pairwise %id difference between the cluster seed
-         and any cluster member.)
+    2. a file listing taxonomy strings for each sequence ID found in the FASTA file.  The format of this file is `sequenceid	pcidwidth	kingdom; phylum; class; order; ...` one entry per line, where sequenceid, pcidwidth, and the taxonomy string are separated by a single tab, and the taxonomy string itself is delimited either by semicolons or by tabs. The pcidwidth column is optional, and (if present) is ignored in the current version of RTAX anyway. (In our usage, we cluster the reference database into 99% id OTUs, representing each by a single "seed" sequence. This column then lists the largest pairwise %id difference between the cluster seed and any cluster member.)
 
 
 Installation
