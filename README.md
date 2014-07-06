@@ -34,11 +34,11 @@ RTAX can be used within [QIIME](http://qiime.org) workflows; see this [tutorial]
 Requirements
 ------------
 
- * Hardware: memory requirements vary with the size of the reference database; for the version of !GreenGenes we provide, ~4GB is needed.
+ * Hardware: memory requirements vary with the size of the reference database; for the version of GreenGenes we provide, ~4GB is needed.
 
  * USEARCH (http://www.drive5.com/usearch/).  RTAX has been tested with v4.1.93 and v5.0.144.  Make sure that the program is in your search path as "usearch", or provide its path explicitly in the "rtax" script.  Note that v5.x uses quite a bit more memory, so 4.x may be preferred.
 
-* A reference database consisting of sequences for which taxonomy assignments are known.  We provide prepared a version of the !GreenGenes database on the RTAX web site; see the !GreenGenes section below for details.
+* A reference database consisting of sequences for which taxonomy assignments are known.  We provide prepared a version of the GreenGenes database on the RTAX web site; see the GreenGenes section below for details.
 
     Two files are needed:
     1. a FASTA file containing the sequences, and 
@@ -100,17 +100,17 @@ Using the GreenGenes reference database
 An RTAX-formatted reference database based on GreenGenes (version of March 11,
 2011) is available from the Downloads section above. That
 contains gg.nr.fasta and gg.nr.taxonomy, which are the result of clustering the
-!GreenGenes input file at 99% identity, finding consensus taxonomy strings for
+GreenGenes input file at 99% identity, finding consensus taxonomy strings for
 each cluster, and formatting the result as needed for use with RTAX.
 
 Please see the "greengenes" subdirectory in the RTAX distribution for
 information on using newer versions of GreenGenes.
 
 
-Preparing a non-!GreenGenes reference database
+Preparing a non-GreenGenes reference database
 ----------------------------------------------
 
-You can certainly use different databases, or !GreenGenes clustered by different
+You can certainly use different databases, or GreenGenes clustered by different
 means or with different parameters (or not at all, though this approach will
 have poor performance). If you have any trouble producing the reference fasta
 and taxonomy files in the required format, examine the prepare-greengenes script
